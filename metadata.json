@@ -1,0 +1,5 @@
+{
+  "name": "Plan & Focus (专注与计划)",
+  "description": "一个结合了番茄钟与待办清单的极简生产力工具。支持按日期记录历史，完全基于本地存储，安全且私密。",
+  "requestFramePermissions": []
+}
