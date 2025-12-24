@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Trash2, X, Zap, List } from 'lucide-react';
+import { Plus, Trash2, X, Zap, List, Edit3 } from 'lucide-react';
 import { ScheduleItem } from '../types';
 
 interface TimelineProps {
@@ -16,6 +16,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null); // Track which item is being edited
   const [modalStartTime, setModalStartTime] = useState('');
   const [modalEndTime, setModalEndTime] = useState('');
   const [modalTitle, setModalTitle] = useState('');
@@ -49,31 +50,62 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingItemId(null);
+    setModalTitle('');
+    setModalStartTime('');
+    setModalEndTime('');
+  };
+
   const handleSlotClick = (hour: number) => {
     if (readOnly) return;
     const startStr = `${hour.toString().padStart(2, '0')}:00`;
     const endStr = `${(hour + 1).toString().padStart(2, '0')}:00`;
     
+    setEditingItemId(null); // Ensure we are in "Add" mode
     setModalStartTime(startStr);
     setModalEndTime(endStr);
     setModalTitle('');
     setIsModalOpen(true);
   };
 
-  const saveNewItem = (e: React.FormEvent) => {
+  const handleItemClick = (e: React.MouseEvent, item: ScheduleItem) => {
+    e.stopPropagation(); // Prevent triggering slot click
+    if (readOnly) return;
+
+    setEditingItemId(item.id); // Set "Edit" mode
+    setModalTitle(item.title);
+    setModalStartTime(item.startTime);
+    setModalEndTime(item.endTime);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!modalTitle.trim()) return;
 
-    const newItem: ScheduleItem = {
-      id: crypto.randomUUID(),
-      startTime: modalStartTime,
-      endTime: modalEndTime,
-      title: modalTitle.trim(),
-      type: 'manual',
-    };
+    if (editingItemId) {
+      // Update existing item
+      const updatedItems = items.map(item => 
+        item.id === editingItemId 
+          ? { ...item, title: modalTitle.trim(), startTime: modalStartTime, endTime: modalEndTime }
+          : item
+      );
+      onItemsChange(updatedItems);
+    } else {
+      // Create new item
+      const newItem: ScheduleItem = {
+        id: crypto.randomUUID(),
+        startTime: modalStartTime,
+        endTime: modalEndTime,
+        title: modalTitle.trim(),
+        type: 'manual',
+      };
+      onItemsChange([...items, newItem]);
+    }
 
-    onItemsChange([...items, newItem]);
-    setIsModalOpen(false);
+    closeModal();
   };
 
   const deleteItem = (e: React.MouseEvent, id: string) => {
@@ -158,7 +190,8 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
             return (
               <div
                 key={item.id}
-                className={`absolute left-24 right-4 p-3 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] hover:z-30 cursor-default group border
+                onClick={(e) => handleItemClick(e, item)}
+                className={`absolute left-24 right-4 p-3 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:scale-[1.01] hover:z-30 cursor-pointer group border
                   ${item.type === 'auto' 
                     ? 'bg-indigo-50 border-indigo-100 text-indigo-700' 
                     : 'bg-emerald-50 border-emerald-100 text-emerald-700'
@@ -174,6 +207,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
                      <div className="font-bold text-sm truncate flex items-center gap-2">
                         {item.type === 'auto' && <Zap size={14} className="fill-current opacity-70" />}
                         {item.title}
+                        {!readOnly && <Edit3 size={12} className="opacity-0 group-hover:opacity-50 transition-opacity" />}
                      </div>
                      <div className="opacity-70 text-xs mt-0.5 font-medium pl-0.5">
                        {item.startTime} - {item.endTime}
@@ -182,7 +216,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
                   {!readOnly && (
                     <button 
                       onClick={(e) => deleteItem(e, item.id)}
-                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 rounded-full p-2 transition-all shadow-sm"
+                      className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 bg-white hover:bg-red-50 rounded-full p-2 transition-all shadow-sm z-20"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -197,16 +231,18 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
       {/* Modern Glass Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={closeModal} />
           <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl relative z-10 animate-[fadeIn_0.2s_ease-out] overflow-hidden">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-slate-900 text-xl">添加事项</h3>
-                <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
+                <h3 className="font-bold text-slate-900 text-xl">
+                  {editingItemId ? '编辑事项' : '添加事项'}
+                </h3>
+                <button onClick={closeModal} className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
                   <X size={18} />
                 </button>
               </div>
-              <form onSubmit={saveNewItem} className="space-y-5">
+              <form onSubmit={handleSave} className="space-y-5">
                 <div>
                   <input
                     autoFocus
@@ -240,7 +276,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
                 <div className="pt-2 flex justify-end gap-3 mt-4">
                    <button 
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={closeModal}
                     className="px-5 py-3 text-sm font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
                    >
                      取消
@@ -249,7 +285,7 @@ const Timeline: React.FC<TimelineProps> = ({ items, onItemsChange, readOnly = fa
                     type="submit"
                     className="px-8 py-3 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95"
                    >
-                     确认
+                     {editingItemId ? '保存修改' : '确认添加'}
                    </button>
                 </div>
               </form>
