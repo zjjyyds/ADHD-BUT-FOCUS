@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, CheckCircle2, Clock, BarChart3 } from 'lucide-react';
-import Timer from './components/Timer';
+import { Settings, CheckCircle2, Clock, BarChart3, CalendarDays, TrendingUp } from 'lucide-react';
+import VisualTimer, { WeekDaysWidget, WeekHoursWidget } from './components/Timer';
 import Timeline from './components/TaskList';
 import TodoList from './components/TodoList';
 import DateNav from './components/DateNav';
 import SettingsModal from './components/DataSettings';
 import { loadDailyData, saveDailyData, loadSettings } from './services/storageService';
-import { DailyData, ScheduleItem, TodoItem, TimerMode, TimerConfig } from './types';
+import { DailyData, ScheduleItem, TodoItem, TimerConfig } from './types';
 
 const App: React.FC = () => {
   const getTodayString = () => {
@@ -21,6 +21,12 @@ const App: React.FC = () => {
   const [timerConfig, setTimerConfig] = useState<TimerConfig>(loadSettings());
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [weeklyData, setWeeklyData] = useState<{name: string, minutes: number}[]>([]);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000); // Update every minute for the top widgets
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     setDailyData(loadDailyData(currentDate));
@@ -64,57 +70,37 @@ const App: React.FC = () => {
     setDailyData(prev => ({ ...prev, todos: newTodos }));
   };
 
-  const handleSessionComplete = useCallback((durationMinutes: number, mode: TimerMode) => {
-    if (mode === TimerMode.WORK) {
-      const today = getTodayString();
-      const now = new Date();
-      const endStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      const startMs = now.getTime() - durationMinutes * 60 * 1000;
-      const startDate = new Date(startMs);
-      const startStr = `${startDate.getHours().toString().padStart(2, '0')}:${startDate.getMinutes().toString().padStart(2, '0')}`;
-
-      const newItem: ScheduleItem = {
-        id: crypto.randomUUID(),
-        startTime: startStr,
-        endTime: endStr,
-        title: '专注时间',
-        type: 'auto'
-      };
-
-      if (currentDate === today) {
-        setDailyData(prev => ({
-          ...prev,
-          focusMinutes: prev.focusMinutes + durationMinutes,
-          schedule: [...prev.schedule, newItem]
-        }));
-      } else {
-        const todayData = loadDailyData(today);
-        todayData.focusMinutes += durationMinutes;
-        todayData.schedule.push(newItem);
-        saveDailyData(todayData);
-      }
-    }
-  }, [currentDate]);
-
   const reloadData = () => {
     setDailyData(loadDailyData(currentDate));
     setTimerConfig(loadSettings());
   };
 
   const isToday = currentDate === getTodayString();
-  const maxMinutes = Math.max(...weeklyData.map(d => d.minutes), 1);
+  
+  // Calculate Stats
+  const weeklyTotalMinutes = weeklyData.reduce((acc, curr) => acc + curr.minutes, 0);
+  const weeklyHours = Math.floor(weeklyTotalMinutes / 60);
+  const weeklyRemainingMinutes = weeklyTotalMinutes % 60;
+  
+  const totalTasks = dailyData.todos.length;
+  const completedTasks = dailyData.todos.filter(t => t.completed).length;
+  const taskProgress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
+  const currentDayOfWeek = new Date().getDay(); // 0 is Sunday
+  const dayIndex = currentDayOfWeek === 0 ? 7 : currentDayOfWeek; // 1 (Mon) - 7 (Sun)
+  const weekProgress = Math.round((dayIndex / 7) * 100);
 
   return (
     <div className="min-h-screen lg:h-screen w-full text-slate-900 bg-[#f5f5f7] font-sans flex flex-col lg:overflow-hidden">
       
       {/* Main Layout Container */}
-      <div className="flex-1 w-full max-w-[1800px] mx-auto p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+      <div className="flex-1 w-full max-w-[1800px] mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
         
-        {/* Left Sidebar: Fixed on Desktop */}
-        <div className="lg:col-span-4 xl:col-span-3 flex flex-col gap-6 lg:h-full">
+        {/* Left Sidebar: Scrollable as a single unit for better UX */}
+        <div className="lg:col-span-4 xl:col-span-3 lg:h-full lg:overflow-y-auto no-scrollbar flex flex-col gap-6 pb-10">
           
-          {/* Header & Nav Area */}
-          <div className="flex-shrink-0 space-y-6">
+          {/* Header & Nav */}
+          <div className="space-y-6">
             <header className="flex items-center justify-between pl-2">
               <div>
                 <div className="text-xs font-bold text-slate-400 mb-1 uppercase tracking-widest">Productivity</div>
@@ -131,69 +117,19 @@ const App: React.FC = () => {
             <DateNav currentDate={currentDate} onDateChange={setCurrentDate} />
           </div>
 
-          {/* Timer Area - Scrollable if height is small, but hidden scrollbar */}
-          <div className="flex-1 lg:overflow-y-auto no-scrollbar min-h-0">
-             <Timer 
-               config={timerConfig}
-               onSessionComplete={handleSessionComplete} 
-             />
+          {/* Visual Timer Widgets - Constrained width for aesthetics */}
+          <div className="w-full">
+             <VisualTimer />
           </div>
         </div>
 
         {/* Right Content Area: Independently Scrollable on Desktop */}
-        <div className="lg:col-span-8 xl:col-span-9 lg:h-full lg:overflow-y-auto no-scrollbar flex flex-col gap-6 pb-20">
+        <div className="lg:col-span-8 xl:col-span-9 lg:h-full lg:overflow-y-auto no-scrollbar flex flex-col gap-6 pb-20 pt-1">
            
-           {/* Stats Row */}
-           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 flex-shrink-0">
-              {/* Focus Time */}
-              <div className="bg-white p-6 rounded-[2rem] shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/50 flex flex-col justify-center gap-2">
-                 <div className="flex items-center gap-2 text-xs font-bold text-indigo-500 uppercase tracking-wide">
-                   <Clock size={14} /> 专注时长
-                 </div>
-                 <div className="flex items-baseline gap-1">
-                   <span className="text-4xl font-black text-slate-900 tracking-tight">{Math.floor(dailyData.focusMinutes / 60)}</span>
-                   <span className="text-sm font-semibold text-slate-400">h</span>
-                   <span className="text-4xl font-black text-slate-900 tracking-tight ml-1">{dailyData.focusMinutes % 60}</span>
-                   <span className="text-sm font-semibold text-slate-400">m</span>
-                 </div>
-              </div>
-
-              {/* Completed Tasks */}
-              <div className="bg-white p-6 rounded-[2rem] shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/50 flex flex-col justify-center gap-2">
-                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 uppercase tracking-wide">
-                   <CheckCircle2 size={14} /> 完成事项
-                 </div>
-                 <div className="text-4xl font-black text-slate-900 tracking-tight">
-                   {dailyData.schedule.length}
-                 </div>
-              </div>
-
-              {/* Weekly Chart */}
-              <div className="md:col-span-2 xl:col-span-2 bg-white p-6 rounded-[2rem] shadow-[0_2px_12px_rgba(0,0,0,0.03)] border border-slate-100/50 flex flex-col justify-between">
-                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wide mb-4">
-                   <BarChart3 size={14} /> 本周概览
-                 </div>
-                 <div className="h-16 flex items-end justify-between gap-3">
-                   {weeklyData.map((day, idx) => {
-                     const heightPercent = Math.min((day.minutes / maxMinutes) * 100, 100);
-                     const isToday = idx === weeklyData.length - 1;
-                     return (
-                       <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
-                          <div className="w-full flex items-end justify-center h-full relative">
-                             <div 
-                               style={{ height: `${heightPercent}%` }} 
-                               className={`w-full max-w-[16px] rounded-full transition-all duration-500 ease-out
-                                 ${isToday ? 'bg-indigo-500 shadow-lg shadow-indigo-200' : 'bg-slate-100 group-hover:bg-slate-200'}`}
-                             />
-                          </div>
-                          <div className="text-[10px] text-slate-400 mt-2 font-semibold">
-                            {day.name}
-                          </div>
-                       </div>
-                     );
-                   })}
-                 </div>
-              </div>
+           {/* Weekly Progress Widgets Row */}
+           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 flex-shrink-0">
+               <WeekDaysWidget now={now} />
+               <WeekHoursWidget now={now} />
            </div>
 
            {/* Lists Row */}
