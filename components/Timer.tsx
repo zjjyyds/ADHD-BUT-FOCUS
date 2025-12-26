@@ -55,15 +55,15 @@ export const WeekDaysWidget: React.FC<{ now: Date }> = ({ now }) => {
   const currentDayName = days[currentDayIndex];
 
   return (
-    <Card className="flex flex-col h-full min-h-[160px] relative overflow-hidden">
+    <Card className="flex flex-col h-full min-h-[240px] relative overflow-hidden">
        {/* Header */}
        <div className="flex justify-between items-start z-10">
           <span className="text-sm font-bold text-slate-500">本周进度</span>
        </div>
        
        {/* Content */}
-       <div className="z-10 flex flex-col items-center justify-center flex-1 gap-5 pb-2">
-          <div className="text-5xl font-black text-slate-800 tracking-tight mt-1">
+       <div className="z-10 flex flex-col items-center justify-center flex-1 gap-6 pb-2">
+          <div className="text-6xl font-black text-slate-800 tracking-tight mt-1">
             {currentDayName}
           </div>
           
@@ -99,15 +99,15 @@ export const WeekHoursWidget: React.FC<{ now: Date }> = ({ now }) => {
   const totalHours = 168;
 
   return (
-    <Card className="flex flex-col h-full min-h-[160px] relative overflow-hidden">
-       <div className="flex justify-between items-center z-10 mb-6">
+    <Card className="flex flex-col h-full min-h-[240px] relative overflow-hidden">
+       <div className="flex justify-between items-center z-10 mb-8">
           <span className="text-sm font-bold text-slate-500">本周小时数</span>
-          <span className="text-[10px] font-bold text-slate-300 tracking-wider">
+          <span className="text-[12px] font-bold text-slate-300 tracking-wider">
              {hoursPassed}/{totalHours} H
           </span>
        </div>
        
-       <div className="flex-1 flex flex-col justify-between z-10 w-full px-0.5">
+       <div className="flex-1 flex flex-col justify-center gap-3.5 z-10 w-full px-0.5">
              {Array.from({ length: 7 }).map((_, dayIdx) => (
                 <div key={dayIdx} className="flex items-center w-full justify-between">
                       {Array.from({ length: 24 }).map((_, hourIdx) => {
@@ -119,7 +119,7 @@ export const WeekHoursWidget: React.FC<{ now: Date }> = ({ now }) => {
                             <div 
                               key={hourIdx}
                               className={`
-                                w-2 h-2 rounded-full transition-all duration-300
+                                w-2.5 h-2.5 rounded-full transition-all duration-300
                                 ${isPast ? 'bg-slate-800' : ''}
                                 ${isCurrent ? 'bg-orange-500 scale-110 shadow-[0_0_4px_rgba(249,115,22,0.4)]' : ''}
                                 ${!isPast && !isCurrent ? 'bg-slate-200' : ''}
