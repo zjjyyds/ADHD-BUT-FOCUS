@@ -6,9 +6,10 @@ interface TodoListProps {
   todos: TodoItem[];
   onUpdate: (todos: TodoItem[]) => void;
   readOnly?: boolean;
+  onTodoComplete?: (todo: TodoItem) => void;
 }
 
-const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false }) => {
+const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, onTodoComplete }) => {
   const [newTodo, setNewTodo] = useState('');
 
   const handleAdd = (e: React.FormEvent) => {
@@ -27,11 +28,19 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false }
 
   const toggleTodo = (id: string) => {
     if (readOnly) return;
+    
+    const todoToToggle = todos.find(t => t.id === id);
+    const isCompleting = todoToToggle && !todoToToggle.completed;
+
     const newTodos = todos.map(t => 
       t.id === id ? { ...t, completed: !t.completed } : t
     );
     // Sort: incomplete first, then completed
     onUpdate(newTodos.sort((a, b) => Number(a.completed) - Number(b.completed)));
+
+    if (isCompleting && onTodoComplete && todoToToggle) {
+      onTodoComplete(todoToToggle);
+    }
   };
 
   const deleteTodo = (id: string) => {

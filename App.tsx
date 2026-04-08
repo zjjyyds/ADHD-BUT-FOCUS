@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Settings, CheckCircle2, Clock, BarChart3, CalendarDays, TrendingUp } from 'lucide-react';
+import { Settings, CheckCircle2, Clock, BarChart3, CalendarDays, TrendingUp, AlertCircle } from 'lucide-react';
 import VisualTimer, { WeekDaysWidget, WeekHoursWidget } from './components/Timer';
 import Timeline from './components/TaskList';
 import TodoList from './components/TodoList';
 import DateNav from './components/DateNav';
 import SettingsModal from './components/DataSettings';
+import AddToScheduleModal from './components/AddToScheduleModal';
 import { loadDailyData, saveDailyData, loadSettings } from './services/storageService';
 import { DailyData, ScheduleItem, TodoItem, TimerConfig } from './types';
 
@@ -22,6 +23,8 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [weeklyData, setWeeklyData] = useState<{name: string, minutes: number}[]>([]);
   const [now, setNow] = useState(new Date());
+  const [activeTab, setActiveTab] = useState<'todo' | 'schedule'>('todo');
+  const [completedTodoToSchedule, setCompletedTodoToSchedule] = useState<TodoItem | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000); // Update every minute for the top widgets
@@ -68,6 +71,26 @@ const App: React.FC = () => {
 
   const handleTodoChange = (newTodos: TodoItem[]) => {
     setDailyData(prev => ({ ...prev, todos: newTodos }));
+  };
+
+  const handleTodoComplete = (todo: TodoItem) => {
+    setCompletedTodoToSchedule(todo);
+  };
+
+  const handleAddToSchedule = (item: Omit<ScheduleItem, 'id' | 'type'>) => {
+    const newItem: ScheduleItem = {
+      ...item,
+      id: crypto.randomUUID(),
+      type: 'manual'
+    };
+    
+    setDailyData(prev => {
+      const newSchedule = [...prev.schedule, newItem].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      return { ...prev, schedule: newSchedule };
+    });
+    
+    // Switch to schedule tab to see the newly added item
+    setActiveTab('schedule');
   };
 
   const reloadData = () => {
@@ -118,45 +141,60 @@ const App: React.FC = () => {
           </div>
 
           {/* Visual Timer Widgets - Constrained width for aesthetics */}
-          <div className="w-full">
+          <div className="w-full flex flex-col gap-6">
              <VisualTimer />
+             <WeekDaysWidget now={now} />
+             <WeekHoursWidget now={now} />
           </div>
         </div>
 
         {/* Right Content Area: Independently Scrollable on Desktop */}
         <div className="lg:col-span-8 xl:col-span-9 lg:h-full lg:overflow-y-auto no-scrollbar flex flex-col gap-6 pb-20 pt-1">
            
-           {/* Weekly Progress Widgets Row */}
-           <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 flex-shrink-0">
-               <WeekDaysWidget now={now} />
-               <WeekHoursWidget now={now} />
+           {!isToday && (
+            <div className="w-full bg-amber-50/80 backdrop-blur-sm border border-amber-100 rounded-[2rem] p-4 flex items-center gap-4 text-amber-900 shadow-sm animate-in fade-in slide-in-from-top-2">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 text-amber-600 shadow-inner">
+                   <Clock size={20} strokeWidth={2.5} />
+                </div>
+                <div>
+                   <div className="font-bold text-sm">历史回顾模式</div>
+                   <div className="text-xs font-medium opacity-70 mt-0.5">您正在查看 {currentDate} 的数据。历史记录仅供查阅，不支持修改。</div>
+                </div>
+             </div>
+           )}
+
+           {/* Tabs */}
+           <div className="flex bg-slate-200/50 p-1 rounded-2xl w-fit mb-2">
+             <button 
+               onClick={() => setActiveTab('todo')}
+               className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'todo' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+             >
+               待办清单
+             </button>
+             <button 
+               onClick={() => setActiveTab('schedule')}
+               className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === 'schedule' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+             >
+               日程表
+             </button>
            </div>
 
-           {/* Lists Row */}
-           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-             <div className="w-full">
+           {/* Active List */}
+           <div className="w-full h-full">
+             {activeTab === 'todo' ? (
+                <TodoList 
+                  todos={dailyData.todos || []}
+                  onUpdate={handleTodoChange}
+                  readOnly={!isToday}
+                  onTodoComplete={handleTodoComplete}
+                />
+             ) : (
                <Timeline 
                   items={dailyData.schedule} 
                   onItemsChange={handleScheduleChange} 
                   readOnly={!isToday}
                 />
-             </div>
-             
-             <div className="w-full">
-                <TodoList 
-                  todos={dailyData.todos || []}
-                  onUpdate={handleTodoChange}
-                  readOnly={!isToday}
-                />
-                
-                {!isToday && (
-                  <div className="text-center py-6 animate-pulse mt-4">
-                     <span className="px-5 py-2 bg-slate-200/50 text-slate-500 rounded-full text-xs font-bold tracking-wide">
-                       您正在查看历史记录
-                     </span>
-                  </div>
-                )}
-             </div>
+             )}
            </div>
 
         </div>
@@ -168,6 +206,12 @@ const App: React.FC = () => {
         onDataImported={reloadData}
         currentConfig={timerConfig}
         onConfigSave={setTimerConfig}
+      />
+
+      <AddToScheduleModal 
+        todo={completedTodoToSchedule}
+        onClose={() => setCompletedTodoToSchedule(null)}
+        onAdd={handleAddToSchedule}
       />
     </div>
   );
