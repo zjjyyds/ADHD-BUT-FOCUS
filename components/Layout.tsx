@@ -4,6 +4,7 @@ import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut } from 'lucide-r
 import { DailyData, ScheduleItem, TodoItem } from '../types';
 import { loadDailyData, saveDailyData, createEmptyDailyData } from '../services/storageService';
 import { useAuth } from './AuthProvider';
+import { playChime } from '../utils/audio';
 
 export type AppContextType = {
   currentDate: string;
@@ -11,6 +12,24 @@ export type AppContextType = {
   dailyData: DailyData;
   setDailyData: React.Dispatch<React.SetStateAction<DailyData>>;
   handleTimerComplete: (title: string, durationMinutes: number) => void;
+  
+  // Timer State
+  taskName: string;
+  setTaskName: React.Dispatch<React.SetStateAction<string>>;
+  inputMinutes: number;
+  setInputMinutes: React.Dispatch<React.SetStateAction<number>>;
+  timeLeft: number;
+  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
+  totalTime: number;
+  setTotalTime: React.Dispatch<React.SetStateAction<number>>;
+  isActive: boolean;
+  setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
+  mode: 'focus' | 'break';
+  setMode: React.Dispatch<React.SetStateAction<'focus' | 'break'>>;
+  completedSessions: number;
+  setCompletedSessions: React.Dispatch<React.SetStateAction<number>>;
+  lastFocusMinutes: number;
+  setLastFocusMinutes: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export default function Layout() {
@@ -19,6 +38,16 @@ export default function Layout() {
   const [dailyData, setDailyData] = useState<DailyData>(createEmptyDailyData(currentDate));
   const { user, signIn, logOut, loading } = useAuth();
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Timer State
+  const [taskName, setTaskName] = useState('Writing Project Proposal');
+  const [inputMinutes, setInputMinutes] = useState<number>(25);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [totalTime, setTotalTime] = useState(25 * 60);
+  const [isActive, setIsActive] = useState(false);
+  const [mode, setMode] = useState<'focus' | 'break'>('focus');
+  const [completedSessions, setCompletedSessions] = useState(0);
+  const [lastFocusMinutes, setLastFocusMinutes] = useState(25);
 
   useEffect(() => {
     let isMounted = true;
@@ -67,6 +96,48 @@ export default function Layout() {
     });
   };
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((time) => time - 1);
+      }, 1000);
+    } else if (isActive && timeLeft === 0) {
+      playChime();
+      
+      if (mode === 'focus') {
+        handleTimerComplete(taskName, inputMinutes);
+        setCompletedSessions(s => s + 1);
+        setMode('break');
+        setInputMinutes(5);
+        setTimeLeft(5 * 60);
+        setTotalTime(5 * 60);
+        // Keep isActive true to auto-start the break
+      } else {
+        setIsActive(false); // Pause when break ends, waiting for user to start next focus
+        setMode('focus');
+        setInputMinutes(lastFocusMinutes);
+        setTimeLeft(lastFocusMinutes * 60);
+        setTotalTime(lastFocusMinutes * 60);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [isActive, timeLeft, taskName, inputMinutes, mode, lastFocusMinutes]);
+
+  const contextValue: AppContextType = {
+    currentDate, setCurrentDate,
+    dailyData, setDailyData,
+    handleTimerComplete,
+    taskName, setTaskName,
+    inputMinutes, setInputMinutes,
+    timeLeft, setTimeLeft,
+    totalTime, setTotalTime,
+    isActive, setIsActive,
+    mode, setMode,
+    completedSessions, setCompletedSessions,
+    lastFocusMinutes, setLastFocusMinutes
+  };
+
   return (
     <div className="flex h-screen w-full bg-[#fdfbf9] font-sans text-slate-800 overflow-hidden">
       {/* Sidebar Navigation */}
@@ -112,7 +183,7 @@ export default function Layout() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#c24127]"></div>
           </div>
         ) : (
-          <Outlet context={{ currentDate, setCurrentDate, dailyData, setDailyData, handleTimerComplete } satisfies AppContextType} />
+          <Outlet context={contextValue} />
         )}
       </main>
     </div>

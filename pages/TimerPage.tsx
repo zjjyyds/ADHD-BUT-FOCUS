@@ -5,28 +5,6 @@ import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, getAllDailyData } from '../services/storageService';
 import { TodayDotsWidget, WeekDotsWidget, TimePerceptionWidget } from '../components/TimeWidgets';
 
-const playChime = () => {
-  try {
-    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(523.25, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 1);
-  } catch (e) {
-    console.error('Audio play failed', e);
-  }
-};
-
 const TimeWheelPicker: React.FC<{
   value: number;
   onChange: (v: number) => void;
@@ -88,18 +66,20 @@ const TimeWheelPicker: React.FC<{
 };
 
 export default function TimerPage() {
-  const { handleTimerComplete, dailyData } = useOutletContext<AppContextType>();
-  const [taskName, setTaskName] = useState('Writing Project Proposal');
-  const [inputMinutes, setInputMinutes] = useState<number>(25);
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
-  const [totalTime, setTotalTime] = useState(25 * 60);
-  const [isActive, setIsActive] = useState(false);
+  const { 
+    handleTimerComplete, dailyData,
+    taskName, setTaskName,
+    inputMinutes, setInputMinutes,
+    timeLeft, setTimeLeft,
+    totalTime, setTotalTime,
+    isActive, setIsActive,
+    mode, setMode,
+    completedSessions, setCompletedSessions,
+    lastFocusMinutes, setLastFocusMinutes
+  } = useOutletContext<AppContextType>();
+  
   const [isEditingTime, setIsEditingTime] = useState(false);
   
-  const [mode, setMode] = useState<'focus' | 'break'>('focus');
-  const [completedSessions, setCompletedSessions] = useState(0);
-  const [lastFocusMinutes, setLastFocusMinutes] = useState(25);
-
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -196,34 +176,6 @@ export default function TimerPage() {
     fetchStats();
     return () => { isMounted = false; };
   }, [dailyData.focusMinutes]);
-
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((time) => time - 1);
-      }, 1000);
-    } else if (isActive && timeLeft === 0) {
-      playChime();
-      
-      if (mode === 'focus') {
-        handleTimerComplete(taskName, inputMinutes);
-        setCompletedSessions(s => s + 1);
-        setMode('break');
-        setInputMinutes(5);
-        setTimeLeft(5 * 60);
-        setTotalTime(5 * 60);
-        // Keep isActive true to auto-start the break
-      } else {
-        setIsActive(false); // Pause when break ends, waiting for user to start next focus
-        setMode('focus');
-        setInputMinutes(lastFocusMinutes);
-        setTimeLeft(lastFocusMinutes * 60);
-        setTotalTime(lastFocusMinutes * 60);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isActive, timeLeft, handleTimerComplete, taskName, inputMinutes, mode, lastFocusMinutes]);
 
   const toggleTimer = () => setIsActive(!isActive);
   const resetTimer = () => {
