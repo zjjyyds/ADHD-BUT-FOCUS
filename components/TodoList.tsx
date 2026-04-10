@@ -49,11 +49,11 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, 
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col h-[650px] overflow-hidden">
+    <div className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="px-8 py-6 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-20 flex justify-between items-center">
         <h2 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-           <Check className="text-emerald-500" size={24} /> 待办清单
+           <Check className="text-[#c24127]" size={24} /> 待办清单
         </h2>
         <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
           {todos.filter(t => !t.completed).length} 待完成
@@ -69,12 +69,12 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, 
                value={newTodo}
                onChange={(e) => setNewTodo(e.target.value)}
                placeholder="添加新任务..."
-               className="w-full bg-slate-50 border-none rounded-2xl pl-5 pr-12 py-4 text-base font-semibold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:bg-white transition-all shadow-sm"
+               className="w-full bg-slate-50 border-none rounded-2xl pl-5 pr-12 py-4 text-base font-semibold text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-[#c24127]/20 focus:bg-white transition-all shadow-sm"
              />
              <button 
                type="submit"
                disabled={!newTodo.trim()}
-               className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-emerald-500 text-white rounded-xl shadow-md hover:bg-emerald-600 disabled:opacity-50 disabled:hover:bg-emerald-500 transition-all active:scale-95"
+               className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#c24127] text-white rounded-xl shadow-md hover:bg-[#a33620] disabled:opacity-50 disabled:hover:bg-[#c24127] transition-all active:scale-95"
              >
                <Plus size={18} />
              </button>
@@ -99,15 +99,15 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, 
             className={`group flex items-center gap-3 p-4 rounded-2xl border transition-all duration-300
               ${todo.completed 
                 ? 'bg-slate-50/50 border-transparent opacity-60' 
-                : 'bg-white border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100'
+                : 'bg-white border-slate-100 shadow-sm hover:shadow-md hover:border-[#eecdc6]'
               }`}
           >
             <button 
               onClick={() => toggleTodo(todo.id)}
               className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors
                 ${todo.completed 
-                  ? 'bg-emerald-500 border-emerald-500 text-white' 
-                  : 'border-slate-300 text-transparent hover:border-emerald-400'
+                  ? 'bg-[#c24127] border-[#c24127] text-white' 
+                  : 'border-slate-300 text-transparent hover:border-[#c24127]'
                 }`}
             >
               <Check size={14} strokeWidth={3} />

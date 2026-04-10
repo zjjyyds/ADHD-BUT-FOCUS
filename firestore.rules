@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+       return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+       return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function uidUnchanged() {
+       return !('uid' in request.resource.data) ||
+         request.resource.data.uid == request.auth.uid;
+    }
+    
+    function uidNotModified() {
+       return !('uid' in request.resource.data) ||
+         request.resource.data.uid == resource.data.uid;
+    }
+    
+    function hasRequiredFields(fields) {
+       return request.resource.data.keys().hasAll(fields);
+    }
+    
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidDailyData(data) {
+      return hasOnlyAllowedFields(['uid', 'date', 'schedule', 'todos', 'focusMinutes']) &&
+             data.uid is string && data.uid.size() > 0 && data.uid.size() < 100 &&
+             data.date is string && data.date.size() == 10 &&
+             data.schedule is list && data.schedule.size() <= 100 &&
+             data.todos is list && data.todos.size() <= 100 &&
+             data.focusMinutes is number && data.focusMinutes >= 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+    match /users/{userId}/dailyData/{dateId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && 
+                    isValidDailyData(request.resource.data) && 
+                    uidUnchanged();
+      allow update: if isOwner(userId) && 
+                    isValidDailyData(request.resource.data) && 
+                    uidNotModified();
+      allow delete: if isOwner(userId);
+    }
+  }
+}

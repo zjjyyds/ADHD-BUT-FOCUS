@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "DailyData": {
+      "title": "DailyData",
+      "description": "User's daily focus and task data",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "User ID of the owner"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format"
+        },
+        "schedule": {
+          "type": "array",
+          "description": "List of schedule items",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "startTime": { "type": "string" },
+              "endTime": { "type": "string" },
+              "title": { "type": "string" },
+              "type": { "type": "string", "enum": ["manual", "auto"] }
+            },
+            "required": ["id", "startTime", "endTime", "title", "type"]
+          }
+        },
+        "todos": {
+          "type": "array",
+          "description": "List of todo items",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" },
+              "completed": { "type": "boolean" }
+            },
+            "required": ["id", "text", "completed"]
+          }
+        },
+        "focusMinutes": {
+          "type": "number",
+          "description": "Total focus minutes for the day"
+        }
+      },
+      "required": ["uid", "date", "schedule", "todos", "focusMinutes"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/dailyData/{dateId}": {
+      "schema": { "$ref": "#/entities/DailyData" },
+      "description": "Daily data for a specific user"
+    }
+  }
+}

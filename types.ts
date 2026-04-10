@@ -18,15 +18,3 @@ export interface DailyData {
   todos: TodoItem[];
   focusMinutes: number;
 }
-
-export enum TimerMode {
-  WORK = 'work',
-  SHORT_BREAK = 'short',
-  LONG_BREAK = 'long',
-}
-
-export interface TimerConfig {
-  work: number;
-  short: number;
-  long: number;
-}
