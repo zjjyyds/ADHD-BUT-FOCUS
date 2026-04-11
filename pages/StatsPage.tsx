@@ -145,9 +145,12 @@ export default function StatsPage() {
           <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 shrink-0">
             <Award className="text-[#c24127]" size={20} /> 专注趋势 (最近7天)
           </h2>
-          <div className="flex-1 w-full min-h-0 relative">
+          <div className="w-full h-[220px] mt-2 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart 
+                data={chartData} 
+                margin={{ top: 10, right: 10, left: -20, bottom: 25 }} 
+              >
                 <defs>
                   <linearGradient id="colorFocus" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#c24127" stopOpacity={1}/>
@@ -163,7 +166,7 @@ export default function StatsPage() {
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} 
-                  dy={10}
+                  dy={15}
                 />
                 <YAxis 
                   axisLine={false} 
@@ -172,12 +175,27 @@ export default function StatsPage() {
                 />
                 <Tooltip 
                   cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold' }}
+                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold', outline: 'none' }}
                   formatter={(value: number) => [`${value} 分钟`, '专注时长']}
                 />
-                <Bar dataKey="minutes" radius={[6, 6, 6, 6]} maxBarSize={40}>
+                <Bar 
+                  dataKey="minutes" 
+                  radius={[6, 6, 6, 6]} 
+                  maxBarSize={40}
+                  cursor="pointer"
+                  onClick={(data) => {
+                    if (data && data.date) {
+                      setCurrentDate(data.date);
+                    } else if (data && data.payload && data.payload.date) {
+                      setCurrentDate(data.payload.date);
+                    }
+                  }}
+                >
                   {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} 
+                    />
                   ))}
                 </Bar>
               </BarChart>
