@@ -68,25 +68,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
   const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 
   return (
-    <div className={`bg-white w-full rounded-[2.5rem] shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden flex flex-col h-full ${className}`}>
+    <div className={`bg-white w-full rounded-[2rem] shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-slate-100 relative overflow-hidden flex flex-col h-full ${className}`}>
       
       {/* Header */}
-      <div className="p-4 lg:p-5 flex justify-between items-center border-b border-slate-100 shrink-0">
-         <h3 className="text-lg font-bold text-slate-800">{year}年 {monthNames[month]}</h3>
+      <div className="p-3 lg:p-4 flex justify-between items-center border-b border-slate-100 shrink-0">
+         <h3 className="text-base font-bold text-slate-800">{year}年 {monthNames[month]}</h3>
          <div className="flex items-center gap-1">
-             <button onClick={handlePrevMonth} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronLeft size={18} /></button>
-             <button onClick={handleNextMonth} className="p-1.5 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronRight size={18} /></button>
+             <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronLeft size={16} /></button>
+             <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronRight size={16} /></button>
          </div>
       </div>
       
-      <div className="p-4 lg:p-5 flex-1 flex flex-col justify-center">
+      <div className="p-3 lg:p-4 flex-1 flex flex-col justify-center min-h-0">
           {/* Grid */}
-          <div className="grid grid-cols-7 gap-1 lg:gap-2 mb-2 lg:mb-4 text-center">
+          <div className="grid grid-cols-7 gap-1 mb-1 lg:mb-2 text-center shrink-0">
               {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-                  <div key={d} className="text-[10px] lg:text-xs font-bold text-slate-400">{d}</div>
+                  <div key={d} className="text-[10px] font-bold text-slate-400">{d}</div>
               ))}
           </div>
-          <div className="grid grid-cols-7 gap-1 lg:gap-2">
+          <div className="grid grid-cols-7 gap-1 flex-1 min-h-0 overflow-hidden">
               {days.map((day, idx) => {
                   if (day === null) return <div key={`empty-${idx}`} />;
                   
@@ -103,16 +103,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
                               onDateSelect(`${year}-${mStr}-${dStr}`);
                           }}
                           className={`
-                              relative h-8 w-8 lg:h-10 lg:w-10 mx-auto flex items-center justify-center text-sm font-medium transition-all rounded-full
+                              relative h-7 w-7 lg:h-8 lg:w-8 mx-auto flex items-center justify-center text-xs font-medium transition-all rounded-full
                               ${selected 
-                                  ? 'bg-[#c24127] text-white shadow-lg shadow-orange-500/30' 
+                                  ? 'bg-[#c24127] text-white shadow-md shadow-orange-500/30' 
                                   : 'text-slate-700 hover:bg-slate-100'}
                               ${today && !selected ? 'text-[#c24127] font-bold' : ''}
                           `}
                       >
                           {day}
                           {active && !selected && (
-                              <div className="absolute bottom-2 w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+                              <div className="absolute bottom-1 w-1 h-1 rounded-full bg-slate-300"></div>
                           )}
                       </button>
                   )
@@ -120,7 +120,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
           </div>
       </div>
       
-      <div className="p-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
+      <div className="p-2 lg:p-3 border-t border-slate-100 bg-slate-50/50 shrink-0">
            <button 
               onClick={() => {
                   const d = new Date();
@@ -128,7 +128,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
                   const local = new Date(d.getTime() - (offset * 60 * 1000));
                   onDateSelect(local.toISOString().split('T')[0]);
               }}
-              className="w-full py-2.5 bg-white text-slate-700 text-sm font-bold rounded-xl shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
+              className="w-full py-1.5 lg:py-2 bg-white text-slate-700 text-xs font-bold rounded-lg shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
            >
               回到今天
            </button>

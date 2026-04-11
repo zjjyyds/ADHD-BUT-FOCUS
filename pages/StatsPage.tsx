@@ -113,98 +113,105 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 h-full flex flex-col gap-4 lg:gap-6 overflow-y-auto no-scrollbar">
+    <div className="p-3 lg:p-5 h-full flex flex-col gap-2 lg:gap-3 overflow-y-auto no-scrollbar">
       {/* Header & Mini Stats */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 shrink-0">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-2 shrink-0">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-800 mb-1 lg:mb-2">数据统计与历史</h1>
-          <p className="text-sm lg:text-base text-slate-500 font-medium">追踪你的生产力与坚持</p>
+          <h1 className="text-lg lg:text-xl font-bold text-slate-800 mb-0.5">数据统计与历史</h1>
+          <p className="text-[10px] lg:text-xs text-slate-500 font-medium">追踪你的生产力与坚持</p>
         </div>
         
         {/* Mini Stats in Top Right */}
-        <div className="flex gap-3">
-          <div className="bg-gradient-to-br from-[#fff1ee] to-[#ffe4de] rounded-2xl p-3 px-4 shadow-sm border border-[#fcd38f]/30 flex flex-col items-center justify-center min-w-[90px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-[#c24127] uppercase mb-1 flex items-center gap-1"><Clock size={12}/> 总时长</div>
-            <div className="text-lg font-black text-[#a33620]">{formatHours(totalFocus)}<span className="text-xs text-[#c24127]/70 ml-1">h</span></div>
+        <div className="flex gap-2">
+          <div className="bg-gradient-to-br from-[#fff1ee] to-[#ffe4de] rounded-xl p-1.5 px-3 shadow-sm border border-[#fcd38f]/30 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-[#c24127] uppercase mb-0.5 flex items-center gap-1"><Clock size={10}/> 总时长</div>
+            <div className="text-sm lg:text-base font-black text-[#a33620]">{formatHours(totalFocus)}<span className="text-[10px] text-[#c24127]/70 ml-0.5">h</span></div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-2xl p-3 px-4 shadow-sm border border-emerald-200/50 flex flex-col items-center justify-center min-w-[90px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase mb-1 flex items-center gap-1"><CheckCircle2 size={12}/> 任务</div>
-            <div className="text-lg font-black text-emerald-700">{totalTasks}</div>
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-1.5 px-3 shadow-sm border border-emerald-200/50 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-emerald-600 uppercase mb-0.5 flex items-center gap-1"><CheckCircle2 size={10}/> 任务</div>
+            <div className="text-sm lg:text-base font-black text-emerald-700">{totalTasks}</div>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-2xl p-3 px-4 shadow-sm border border-orange-200/50 flex flex-col items-center justify-center min-w-[90px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-orange-600 uppercase mb-1 flex items-center gap-1"><Flame size={12}/> 连续</div>
-            <div className="text-lg font-black text-orange-700">{streak}<span className="text-xs text-orange-600/70 ml-1">天</span></div>
+          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl p-1.5 px-3 shadow-sm border border-orange-200/50 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-orange-600 uppercase mb-0.5 flex items-center gap-1"><Flame size={10}/> 连续</div>
+            <div className="text-sm lg:text-base font-black text-orange-700">{streak}<span className="text-[10px] text-orange-600/70 ml-0.5">天</span></div>
           </div>
         </div>
       </div>
 
       {/* Middle Row: Chart & Calendar */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-h-[240px]">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-3 min-h-0">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white flex flex-col h-full overflow-hidden">
-          <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 shrink-0">
-            <Award className="text-[#c24127]" size={20} /> 专注趋势 (最近7天)
+        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white flex flex-col h-full overflow-hidden">
+          <h2 className="text-sm lg:text-base font-bold text-slate-800 mb-1 flex items-center gap-1.5 shrink-0">
+            <Award className="text-[#c24127]" size={16} /> 专注趋势 (最近7天)
           </h2>
-          <div className="w-full h-[220px] mt-2 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={chartData} 
-                margin={{ top: 10, right: 10, left: -20, bottom: 25 }} 
-              >
-                <defs>
-                  <linearGradient id="colorFocus" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#c24127" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#eecdc6" stopOpacity={1}/>
-                  </linearGradient>
-                  <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#f1f5f9" stopOpacity={1}/>
-                    <stop offset="100%" stopColor="#e2e8f0" stopOpacity={1}/>
-                  </linearGradient>
-                </defs>
-                <XAxis 
-                  dataKey="dayName" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }} 
-                  dy={15}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold', outline: 'none' }}
-                  formatter={(value: number) => [`${value} 分钟`, '专注时长']}
-                />
-                <Bar 
-                  dataKey="minutes" 
-                  radius={[6, 6, 6, 6]} 
-                  maxBarSize={40}
-                  cursor="pointer"
-                  onClick={(data) => {
-                    if (data && data.date) {
-                      setCurrentDate(data.date);
-                    } else if (data && data.payload && data.payload.date) {
-                      setCurrentDate(data.payload.date);
+          <div className="flex-1 w-full min-h-0 relative mt-1 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none">
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={chartData} 
+                  margin={{ top: 5, right: 5, left: -25, bottom: 15 }} 
+                  onClick={(state) => {
+                    if (state && state.activePayload && state.activePayload.length > 0) {
+                      setCurrentDate(state.activePayload[0].payload.date);
                     }
                   }}
+                  style={{ cursor: 'pointer' }}
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} 
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                  <defs>
+                    <linearGradient id="colorFocus" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#c24127" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#eecdc6" stopOpacity={1}/>
+                    </linearGradient>
+                    <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#f1f5f9" stopOpacity={1}/>
+                      <stop offset="100%" stopColor="#e2e8f0" stopOpacity={1}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis 
+                    dataKey="dayName" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600, cursor: 'pointer' }} 
+                    dy={5}
+                    onClick={(data) => {
+                      // Find the corresponding date from chartData based on the dayName
+                      const clickedData = chartData.find(d => d.dayName === data.value);
+                      if (clickedData && clickedData.date) {
+                        setCurrentDate(clickedData.date);
+                      }
+                    }}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#f8fafc' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold', outline: 'none', fontSize: '12px', padding: '8px' }}
+                    formatter={(value: number) => [`${value} 分钟`, '专注时长']}
+                  />
+                  <Bar 
+                    dataKey="minutes" 
+                    radius={[4, 4, 4, 4]} 
+                    maxBarSize={30}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} 
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
         {/* Calendar */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-h-0">
           <CalendarView 
             currentDate={currentDate}
             onDateSelect={setCurrentDate}
@@ -213,27 +220,27 @@ export default function StatsPage() {
       </div>
 
       {/* Bottom Row: Daily Details */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-5 lg:p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white shrink-0">
-        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <CalendarIcon className="text-[#c24127]" size={20} /> 
+      <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white shrink-0">
+        <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+          <CalendarIcon className="text-[#c24127]" size={18} /> 
           {currentDate} 详情
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-          <div className="bg-gradient-to-br from-[#fff1ee]/60 to-white rounded-2xl p-4 lg:p-5 border border-[#eecdc6]/50 flex flex-col justify-center">
-            <div className="text-xs font-bold text-[#c24127]/70 uppercase tracking-wider mb-1">专注时长</div>
-            <div className="text-2xl font-black text-[#c24127]">{selectedDayData.focusMinutes} <span className="text-sm text-[#c24127]/70">分钟</span></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 lg:gap-3">
+          <div className="bg-gradient-to-br from-[#fff1ee]/60 to-white rounded-xl p-2.5 lg:p-3 border border-[#eecdc6]/50 flex flex-col justify-center h-[100px] lg:h-[120px]">
+            <div className="text-xs font-bold text-[#c24127]/70 uppercase tracking-wider mb-0.5">专注时长</div>
+            <div className="text-xl lg:text-2xl font-black text-[#c24127]">{selectedDayData.focusMinutes} <span className="text-xs lg:text-sm text-[#c24127]/70">分钟</span></div>
           </div>
           
-          <div className="bg-gradient-to-br from-emerald-50/60 to-white rounded-2xl p-4 lg:p-5 border border-emerald-100/50">
-            <div className="text-xs font-bold text-emerald-600/70 uppercase tracking-wider mb-3">已完成任务</div>
-            <div className="space-y-2 max-h-[100px] overflow-y-auto no-scrollbar">
+          <div className="bg-gradient-to-br from-emerald-50/60 to-white rounded-xl p-2.5 lg:p-3 border border-emerald-100/50 flex flex-col h-[100px] lg:h-[120px]">
+            <div className="text-xs font-bold text-emerald-600/70 uppercase tracking-wider mb-1.5 shrink-0">已完成任务</div>
+            <div className="space-y-1.5 overflow-y-auto no-scrollbar flex-1">
               {selectedDayData.todos.filter(t => t.completed).length === 0 ? (
                 <div className="text-emerald-600/50 text-sm font-medium">未完成任何任务</div>
               ) : (
                 selectedDayData.todos.filter(t => t.completed).map(t => (
-                  <div key={t.id} className="flex items-center gap-2 text-emerald-800 font-medium">
-                    <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                  <div key={t.id} className="flex items-center gap-1.5 text-emerald-800 font-medium text-sm">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                     <span className="truncate">{t.text}</span>
                   </div>
                 ))
@@ -241,15 +248,15 @@ export default function StatsPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-indigo-50/60 to-white rounded-2xl p-4 lg:p-5 border border-indigo-100/50">
-            <div className="text-xs font-bold text-indigo-600/70 uppercase tracking-wider mb-3">日程记录</div>
-            <div className="space-y-2 max-h-[100px] overflow-y-auto no-scrollbar">
+          <div className="bg-gradient-to-br from-indigo-50/60 to-white rounded-xl p-2.5 lg:p-3 border border-indigo-100/50 flex flex-col h-[100px] lg:h-[120px]">
+            <div className="text-xs font-bold text-indigo-600/70 uppercase tracking-wider mb-1.5 shrink-0">日程记录</div>
+            <div className="space-y-1.5 overflow-y-auto no-scrollbar flex-1">
               {selectedDayData.schedule.length === 0 ? (
                 <div className="text-indigo-600/50 text-sm font-medium">无日程记录</div>
               ) : (
                 selectedDayData.schedule.map(s => (
-                  <div key={s.id} className="flex items-center gap-3 text-indigo-800 font-medium">
-                    <div className="text-xs font-bold text-indigo-400 w-12 shrink-0">{s.startTime}</div>
+                  <div key={s.id} className="flex items-center gap-2 text-indigo-800 font-medium text-sm">
+                    <div className="text-xs font-bold text-indigo-400 w-10 shrink-0">{s.startTime}</div>
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></div>
                     <span className="truncate">{s.title}</span>
                   </div>
