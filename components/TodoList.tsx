@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Plus, Trash2, Circle } from 'lucide-react';
+import { Check, Plus, Trash2, Circle, Copy } from 'lucide-react';
 import { TodoItem } from '../types';
 
 interface TodoListProps {
@@ -7,9 +7,11 @@ interface TodoListProps {
   onUpdate: (todos: TodoItem[]) => void;
   readOnly?: boolean;
   onTodoComplete?: (todo: TodoItem) => void;
+  onCopyYesterday?: () => void;
+  isCopying?: boolean;
 }
 
-const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, onTodoComplete }) => {
+const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, onTodoComplete, onCopyYesterday, isCopying }) => {
   const [newTodo, setNewTodo] = useState('');
 
   const handleAdd = (e: React.FormEvent) => {
@@ -55,9 +57,22 @@ const TodoList: React.FC<TodoListProps> = ({ todos, onUpdate, readOnly = false, 
         <h2 className="font-bold text-slate-800 text-lg flex items-center gap-2">
            <Check className="text-[#c24127]" size={24} /> 待办清单
         </h2>
-        <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-          {todos.filter(t => !t.completed).length} 待完成
-        </span>
+        <div className="flex items-center gap-3">
+          {!readOnly && onCopyYesterday && (
+            <button
+              onClick={onCopyYesterday}
+              disabled={isCopying}
+              className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-[#c24127] transition-colors disabled:opacity-50"
+              title="复制昨日待办"
+            >
+              <Copy size={14} />
+              <span className="hidden sm:inline">复制昨日</span>
+            </button>
+          )}
+          <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+            {todos.filter(t => !t.completed).length} 待完成
+          </span>
+        </div>
       </div>
 
       {/* Input Area */}

@@ -7,11 +7,13 @@ import AddToScheduleModal from '../components/AddToScheduleModal';
 import CalendarView from '../components/CalendarView';
 import { TodoItem, ScheduleItem } from '../types';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { loadDailyData } from '../services/storageService';
 
 export default function TasksPage() {
   const { currentDate, setCurrentDate, dailyData, setDailyData } = useOutletContext<AppContextType>();
   const [todoToSchedule, setTodoToSchedule] = useState<TodoItem | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
 
   const handleTodoChange = (newTodos: TodoItem[]) => {
     setDailyData(prev => ({ ...prev, todos: newTodos }));
@@ -57,6 +59,43 @@ export default function TasksPage() {
     setTodoToSchedule(null);
   };
 
+  const handleCopyYesterday = async () => {
+    setIsCopying(true);
+    try {
+      // Parse YYYY-MM-DD manually to avoid timezone shift
+      const [year, month, day] = currentDate.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
+      date.setDate(date.getDate() - 1);
+      
+      const yStr = date.getFullYear().toString();
+      const mStr = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dStr = date.getDate().toString().padStart(2, '0');
+      const yesterdayStr = `${yStr}-${mStr}-${dStr}`;
+      
+      const yesterdayData = await loadDailyData(yesterdayStr);
+      
+      if (yesterdayData.todos && yesterdayData.todos.length > 0) {
+        const existingTexts = new Set(dailyData.todos.map(t => t.text));
+        const newTodos = yesterdayData.todos
+          .filter(t => !existingTexts.has(t.text))
+          .map(t => ({
+            ...t,
+            id: crypto.randomUUID(),
+            completed: false
+          }));
+          
+        if (newTodos.length > 0) {
+          setDailyData(prev => ({
+            ...prev,
+            todos: [...newTodos, ...prev.todos]
+          }));
+        }
+      }
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 h-full flex flex-col gap-6 overflow-hidden">
       <div className="flex items-center justify-between shrink-0">
@@ -94,6 +133,8 @@ export default function TasksPage() {
             todos={dailyData.todos} 
             onUpdate={handleTodoChange}
             onTodoComplete={handleTodoComplete}
+            onCopyYesterday={handleCopyYesterday}
+            isCopying={isCopying}
           />
         </div>
         <div className="h-full overflow-hidden">
