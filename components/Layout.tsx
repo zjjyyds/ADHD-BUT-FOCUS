@@ -142,8 +142,58 @@ export default function Layout() {
     <div className="flex h-screen w-full bg-[#fdfbf9] font-sans text-slate-800 overflow-hidden">
       {/* Sidebar Navigation */}
       <nav className="w-20 flex flex-col items-center py-8 border-r border-slate-100 bg-white/50 backdrop-blur-xl z-20">
-        <div className="w-10 h-10 rounded-xl bg-[#c24127] text-white flex items-center justify-center font-bold text-xl mb-12 shadow-lg shadow-orange-500/20">
-          P
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-12 overflow-hidden bg-white shadow-sm border border-slate-100 p-1">
+          <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm">
+            <defs>
+              <linearGradient id="owlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ff6b4a" />
+                <stop offset="100%" stopColor="#c24127" />
+              </linearGradient>
+              <linearGradient id="bellyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95"/>
+                <stop offset="100%" stopColor="#ffe8e3" stopOpacity="0.95"/>
+              </linearGradient>
+            </defs>
+
+            {/* Tomato Owl Body */}
+            <path d="M 20 45 C 20 15, 80 15, 80 45 C 80 85, 65 92, 50 92 C 35 92, 20 85, 20 45 Z" fill="url(#owlGrad)" />
+
+            {/* Tomato Leaves / Owl Ear Tufts */}
+            <path d="M 50 20 C 40 20, 32 12, 28 5 C 38 10, 45 15, 50 18 C 55 15, 62 10, 72 5 C 68 12, 60 20, 50 20 Z" fill="#2e7d32" />
+            <path d="M 50 18 Q 52 8, 56 2" fill="none" stroke="#2e7d32" strokeWidth="3" strokeLinecap="round" />
+
+            {/* Belly */}
+            <path d="M 30 55 C 30 40, 70 40, 70 55 C 70 80, 60 88, 50 88 C 40 88, 30 80, 30 55 Z" fill="url(#bellyGrad)" />
+
+            {/* Task Checkmark on Belly */}
+            <path d="M 43 72 L 48 77 L 58 65" fill="none" stroke="#ff6b4a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" opacity="0.4" />
+
+            {/* Timer Eyes */}
+            {/* Left Eye */}
+            <circle cx="36" cy="42" r="14" fill="#ffffff" />
+            <circle cx="36" cy="42" r="11" fill="none" stroke="#ff6b4a" strokeWidth="2" strokeDasharray="2 4" opacity="0.8" />
+            <circle cx="36" cy="42" r="6" fill="#333333" />
+            <circle cx="34" cy="40" r="2" fill="#ffffff" />
+            
+            {/* Right Eye */}
+            <circle cx="64" cy="42" r="14" fill="#ffffff" />
+            <circle cx="64" cy="42" r="11" fill="none" stroke="#ff6b4a" strokeWidth="2" strokeDasharray="2 4" opacity="0.8" />
+            <circle cx="64" cy="42" r="6" fill="#333333" />
+            <circle cx="62" cy="40" r="2" fill="#ffffff" />
+
+            {/* Beak */}
+            <path d="M 46 48 L 54 48 L 50 56 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="1" strokeLinejoin="round" />
+
+            {/* Folded Wings */}
+            <path d="M 20 45 C 12 55, 15 75, 26 82 C 23 68, 25 55, 30 50 Z" fill="#a9351f" />
+            <path d="M 80 45 C 88 55, 85 75, 74 82 C 77 68, 75 55, 70 50 Z" fill="#a9351f" />
+
+            {/* Feet */}
+            <line x1="40" y1="90" x2="37" y2="96" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+            <line x1="40" y1="90" x2="43" y2="96" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+            <line x1="60" y1="90" x2="57" y2="96" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+            <line x1="60" y1="90" x2="63" y2="96" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+          </svg>
         </div>
         
         <div className="flex flex-col gap-8 flex-1">

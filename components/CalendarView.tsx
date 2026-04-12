@@ -72,10 +72,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
       
       {/* Header */}
       <div className="p-3 lg:p-4 flex justify-between items-center border-b border-slate-100 shrink-0">
-         <h3 className="text-base font-bold text-slate-800">{year}年 {monthNames[month]}</h3>
+         <h3 className="text-lg font-bold text-slate-800">{year}年 {monthNames[month]}</h3>
          <div className="flex items-center gap-1">
-             <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronLeft size={16} /></button>
-             <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronRight size={16} /></button>
+             <button onClick={handlePrevMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronLeft size={18} /></button>
+             <button onClick={handleNextMonth} className="p-1 hover:bg-slate-100 rounded-full text-slate-500 transition-colors"><ChevronRight size={18} /></button>
          </div>
       </div>
       
@@ -83,7 +83,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
           {/* Grid */}
           <div className="grid grid-cols-7 gap-1 mb-1 lg:mb-2 text-center shrink-0">
               {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-                  <div key={d} className="text-[10px] font-bold text-slate-400">{d}</div>
+                  <div key={d} className="text-xs font-bold text-slate-400">{d}</div>
               ))}
           </div>
           <div className="grid grid-cols-7 gap-1 flex-1 min-h-0 overflow-hidden">
@@ -103,7 +103,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
                               onDateSelect(`${year}-${mStr}-${dStr}`);
                           }}
                           className={`
-                              relative h-7 w-7 lg:h-8 lg:w-8 mx-auto flex items-center justify-center text-xs font-medium transition-all rounded-full
+                              relative h-8 w-8 lg:h-9 lg:w-9 mx-auto flex items-center justify-center text-sm font-medium transition-all rounded-full
                               ${selected 
                                   ? 'bg-[#c24127] text-white shadow-md shadow-orange-500/30' 
                                   : 'text-slate-700 hover:bg-slate-100'}
@@ -128,7 +128,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ currentDate, onDateSelect, 
                   const local = new Date(d.getTime() - (offset * 60 * 1000));
                   onDateSelect(local.toISOString().split('T')[0]);
               }}
-              className="w-full py-1.5 lg:py-2 bg-white text-slate-700 text-xs font-bold rounded-lg shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
+              className="w-full py-1.5 lg:py-2 bg-white text-slate-700 text-sm font-bold rounded-lg shadow-sm border border-slate-100 hover:bg-slate-50 transition-colors"
            >
               回到今天
            </button>
