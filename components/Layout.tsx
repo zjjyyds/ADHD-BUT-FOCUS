@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut } from 'lucide-react';
 import { DailyData, ScheduleItem, TodoItem } from '../types';
@@ -96,13 +96,23 @@ export default function Layout() {
     });
   };
 
+  const endTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isActive && timeLeft > 0) {
+      if (!endTimeRef.current) {
+        endTimeRef.current = Date.now() + timeLeft * 1000;
+      }
+      
       interval = setInterval(() => {
-        setTimeLeft((time) => time - 1);
+        if (endTimeRef.current) {
+          const newTimeLeft = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+          setTimeLeft(newTimeLeft);
+        }
       }, 1000);
     } else if (isActive && timeLeft === 0) {
+      endTimeRef.current = null;
       playChime();
       
       if (mode === 'focus') {
@@ -112,6 +122,7 @@ export default function Layout() {
         setInputMinutes(5);
         setTimeLeft(5 * 60);
         setTotalTime(5 * 60);
+        endTimeRef.current = Date.now() + 5 * 60 * 1000;
         // Keep isActive true to auto-start the break
       } else {
         setIsActive(false); // Pause when break ends, waiting for user to start next focus
@@ -120,6 +131,8 @@ export default function Layout() {
         setTimeLeft(lastFocusMinutes * 60);
         setTotalTime(lastFocusMinutes * 60);
       }
+    } else {
+      endTimeRef.current = null;
     }
     return () => clearInterval(interval);
   }, [isActive, timeLeft, taskName, inputMinutes, mode, lastFocusMinutes]);
