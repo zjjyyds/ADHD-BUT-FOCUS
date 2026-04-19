@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, createEmptyDailyData, getAllDailyData } from '../services/storageService';
-import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles } from 'lucide-react';
+import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
 
 export default function ReportPage() {
@@ -14,8 +14,37 @@ export default function ReportPage() {
     totalFocus: number;
     totalTasks: number;
     mostProductiveDay: string;
+    averageScore: number;
     weeklyData: any[];
   } | null>(null);
+
+  const calculateDailyScore = (focusMinutes: number, tasks: any[]) => {
+    if (focusMinutes === 0 && tasks.length === 0) {
+      return { score: 0, grade: '-', color: 'text-slate-400', bg: 'bg-slate-100', label: '未记录' };
+    }
+
+    // Every 120 mins of focus gives 60 points max
+    let focusScore = Math.min(60, (focusMinutes / 120) * 60);
+    
+    // Tasks give 40 points max based on completion rate
+    let taskScore = 0;
+    if (tasks.length > 0) {
+      const completed = tasks.filter(t => t.completed).length;
+      taskScore = (completed / tasks.length) * 40;
+    } else {
+      // If there are no tasks, focus counts towards the full 100 points
+      focusScore = Math.min(100, (focusMinutes / 120) * 100);
+    }
+
+    const totalScore = Math.round(focusScore + taskScore);
+
+    if (totalScore >= 90) return { score: totalScore, grade: 'S', color: 'text-amber-600', bg: 'bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200', label: '极佳' };
+    if (totalScore >= 75) return { score: totalScore, grade: 'A', color: 'text-emerald-600', bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200', label: '优秀' };
+    if (totalScore >= 60) return { score: totalScore, grade: 'B', color: 'text-blue-600', bg: 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200', label: '良好' };
+    if (totalScore > 0) return { score: totalScore, grade: 'C', color: 'text-orange-600', bg: 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200', label: '及格' };
+    
+    return { score: 0, grade: '-', color: 'text-slate-400', bg: 'bg-slate-100 border-slate-200', label: '未达标' };
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -31,6 +60,8 @@ export default function ReportPage() {
       let tTasks = 0;
       let maxFocus = -1;
       let bestDay = '这周暂无';
+      let totalScoreSum = 0;
+      let daysWithRecords = 0;
       
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -41,31 +72,41 @@ export default function ReportPage() {
         const data = dataMap.get(dStr) || createEmptyDailyData(dStr);
         
         const dayFocus = data.focusMinutes || 0;
-        const dayTasks = (data.todos || []).filter(t => t.completed).length;
+        const dayTasks = data.todos || [];
+        const scoreInfo = calculateDailyScore(dayFocus, dayTasks);
 
         weeklyData.push({
           date: dStr,
           dayName: dayOfWeekStr,
           fullDayOfWeekStr,
           focusMinutes: dayFocus,
-          tasks: data.todos?.map(t => ({ text: t.text, completed: t.completed })) || [],
-          schedule: data.schedule?.map(s => ({ title: s.title, startTime: s.startTime, endTime: s.endTime, type: s.type })) || []
+          tasks: dayTasks.map(t => ({ text: t.text, completed: t.completed })),
+          schedule: data.schedule?.map(s => ({ title: s.title, startTime: s.startTime, endTime: s.endTime, type: s.type })) || [],
+          scoreInfo
         });
         
         tFocus += dayFocus;
-        tTasks += dayTasks;
+        tTasks += dayTasks.filter(t => t.completed).length;
         
         if (dayFocus > maxFocus) {
           maxFocus = dayFocus;
           if (dayFocus > 0) bestDay = dayOfWeekStr;
         }
+
+        if (scoreInfo.score > 0) {
+          totalScoreSum += scoreInfo.score;
+          daysWithRecords++;
+        }
       }
+
+      const averageScore = daysWithRecords > 0 ? Math.round(totalScoreSum / daysWithRecords) : 0;
 
       if (isMounted) {
         setReportData({
           totalFocus: tFocus,
           totalTasks: tTasks,
           mostProductiveDay: bestDay,
+          averageScore,
           weeklyData
         });
         setLoading(false);
@@ -79,40 +120,46 @@ export default function ReportPage() {
   const handleExportWeeklyReport = () => {
     if (!reportData) return;
     
-    let completedWeeklyTasks: string[] = [];
-    reportData.weeklyData.forEach(day => {
-      day.tasks.filter((t: any) => t.completed).forEach((t: any) => {
-        completedWeeklyTasks.push(t.text);
-      });
-    });
-
-    const reportList = {
-      title: "Weekly Focus & Productivity Report",
-      generatedAt: new Date().toISOString(),
-      summary: {
-        totalFocusMinutes: reportData.totalFocus,
-        totalFocusHours: (reportData.totalFocus / 60).toFixed(1),
-        completedTasksCount: reportData.totalTasks,
-        mostProductiveDay: reportData.mostProductiveDay
-      },
-      dailyLogs: reportData.weeklyData.map(d => ({
-        date: d.date,
-        dayOfWeek: d.fullDayOfWeekStr,
-        focusMinutes: d.focusMinutes,
-        tasks: d.tasks,
-        schedule: d.schedule
-      }))
-    };
+    const formatHours = (mins: number) => (mins / 60).toFixed(1);
     
-    // Convert to nicely formatted JSON string
-    const jsonString = JSON.stringify(reportList, null, 2);
+    let md = `# Weekly Focus & Productivity Report\n\n`;
+    md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
+    
+    md += `## 📊 Summary\n`;
+    md += `- **Total Focus Time**: ${formatHours(reportData.totalFocus)} hours (${reportData.totalFocus} minutes)\n`;
+    md += `- **Completed Tasks**: ${reportData.totalTasks} items\n`;
+    md += `- **Most Productive Day**: ${reportData.mostProductiveDay}\n`;
+    md += `- **Average Score**: ${reportData.averageScore} / 100\n\n`;
+
+    md += `## 📅 Daily Logs\n\n`;
+
+    reportData.weeklyData.forEach(day => {
+      md += `### ${day.date} (${day.dayName})\n`;
+      md += `- **Score**: ${day.scoreInfo.score > 0 ? `${day.scoreInfo.grade} (${day.scoreInfo.score} pts)` : 'No Record'}\n`;
+      md += `- **Focus Time**: ${day.focusMinutes} minutes\n`;
+      
+      if (day.tasks && day.tasks.length > 0) {
+        md += `- **Tasks**:\n`;
+        day.tasks.forEach((t: any) => {
+          md += `  - [${t.completed ? 'x' : ' '}] ${t.text}\n`;
+        });
+      }
+
+      if (day.schedule && day.schedule.length > 0) {
+        md += `- **Schedule / Records**:\n`;
+        day.schedule.forEach((s: any) => {
+          md += `  - \`${s.startTime || '???'}${s.endTime ? ` - ${s.endTime}` : ''}\`: ${s.title}\n`;
+        });
+      }
+      md += `\n`;
+    });
     
     // Create and trigger download
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `weekly-report-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `weekly-report-${new Date().toISOString().split('T')[0]}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -138,7 +185,7 @@ export default function ReportPage() {
             <FileText className="text-[#c24127]" size={24} /> 周报与洞察
           </h1>
           <p className="text-xs lg:text-sm text-slate-500 font-medium max-w-xl">
-            专为 AI 总结设计。导出下方的 JSON 数据发送给你的大语言模型助手，获取深度的效率分析与下周建议。
+            专为 AI 总结设计。导出 Markdown 文本发送给你的大语言模型助手，获取深度的效率分析。
           </p>
         </div>
         
@@ -147,17 +194,17 @@ export default function ReportPage() {
           className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 hover:shadow-lg transition-all shadow-md font-semibold text-sm whitespace-nowrap active:scale-95 group"
         >
           <Download size={18} className="group-hover:-translate-y-1 transition-transform" />
-          <span>导出为 JSON 格式</span>
+          <span>导出 Markdown 周报</span>
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
         <div className="bg-gradient-to-br from-[#fff1ee] to-white rounded-2xl p-5 border border-[#fcd38f]/30 flex flex-col items-start shadow-sm">
           <div className="text-xs font-bold tracking-wider text-[#c24127]/80 uppercase mb-2 flex items-center gap-1.5">
             <Clock size={14}/> 本周总时长
           </div>
-          <div className="text-3xl lg:text-4xl font-black text-[#a33620] mt-auto">
+          <div className="text-3xl font-black text-[#a33620] mt-auto">
             {formatHours(reportData.totalFocus)}
             <span className="text-lg text-[#c24127]/70 ml-1">小时</span>
           </div>
@@ -167,7 +214,7 @@ export default function ReportPage() {
           <div className="text-xs font-bold tracking-wider text-emerald-600/80 uppercase mb-2 flex items-center gap-1.5">
             <CheckCircle2 size={14}/> 本周完成任务
           </div>
-          <div className="text-3xl lg:text-4xl font-black text-emerald-700 mt-auto">
+          <div className="text-3xl font-black text-emerald-700 mt-auto">
             {reportData.totalTasks}
             <span className="text-lg text-emerald-600/70 ml-1">项</span>
           </div>
@@ -181,6 +228,16 @@ export default function ReportPage() {
             {reportData.mostProductiveDay}
           </div>
         </div>
+
+        <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-5 border border-amber-200/50 flex flex-col items-start shadow-sm">
+          <div className="text-xs font-bold tracking-wider text-amber-600/80 uppercase mb-2 flex items-center gap-1.5">
+            <Trophy size={14}/> 本周平均分
+          </div>
+          <div className="text-3xl font-black text-amber-700 mt-auto">
+            {reportData.averageScore}
+            <span className="text-lg text-amber-600/70 ml-1">分</span>
+          </div>
+        </div>
       </div>
 
       {/* Weekly Visual Timeline */}
@@ -192,9 +249,12 @@ export default function ReportPage() {
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-2 pb-4">
           {reportData.weeklyData.map((day, index) => (
             <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors">
-              <div className="w-20 shrink-0 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-slate-200 pb-2 sm:pb-0 sm:pr-4">
-                <span className="text-xs font-bold text-slate-400">{day.date.substring(5)}</span>
-                <span className="text-base font-black text-slate-700">{day.dayName}</span>
+              <div className="w-24 shrink-0 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-slate-200 pb-2 sm:pb-0 sm:pr-4">
+                <span className="text-xs font-bold text-slate-400 mb-0.5">{day.date.substring(5)}</span>
+                <span className="text-base font-black text-slate-700 mb-1">{day.dayName}</span>
+                <div className={`mt-auto w-fit px-2 py-0.5 rounded-full border text-[10px] font-bold ${day.scoreInfo.bg} ${day.scoreInfo.color}`}>
+                  {day.scoreInfo.score > 0 ? `${day.scoreInfo.grade}级 · ${day.scoreInfo.score}分` : day.scoreInfo.label}
+                </div>
               </div>
               
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
