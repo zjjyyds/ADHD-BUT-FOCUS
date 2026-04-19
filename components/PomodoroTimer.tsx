@@ -81,15 +81,27 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
     }
   }, [inputMinutes, isActive, isEditingTime]);
 
+  const endTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isActive && timeLeft > 0) {
+      if (!endTimeRef.current) {
+        endTimeRef.current = Date.now() + timeLeft * 1000;
+      }
+
       interval = setInterval(() => {
-        setTimeLeft((time) => time - 1);
+        if (endTimeRef.current) {
+          const newTimeLeft = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000));
+          setTimeLeft(newTimeLeft);
+        }
       }, 1000);
     } else if (isActive && timeLeft === 0) {
       setIsActive(false);
+      endTimeRef.current = null;
       onTimerComplete(taskName || '专注时钟', Number(inputMinutes) || 25);
+    } else {
+      endTimeRef.current = null;
     }
     return () => clearInterval(interval);
   }, [isActive, timeLeft, taskName, inputMinutes, onTimerComplete]);

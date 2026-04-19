@@ -87,7 +87,7 @@ export default function StatsPage() {
 
     fetchStats();
     return () => { isMounted = false; };
-  }, [user]); // Re-fetch when user changes
+  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
@@ -122,18 +122,18 @@ export default function StatsPage() {
         </div>
         
         {/* Mini Stats in Top Right */}
-        <div className="flex gap-2">
-          <div className="bg-gradient-to-br from-[#fff1ee] to-[#ffe4de] rounded-xl p-1.5 px-3 shadow-sm border border-[#fcd38f]/30 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-[#c24127] uppercase mb-0.5 flex items-center gap-1"><Clock size={10}/> 总时长</div>
-            <div className="text-base lg:text-lg font-black text-[#a33620]">{formatHours(totalFocus)}<span className="text-[10px] text-[#c24127]/70 ml-0.5">h</span></div>
+        <div className="flex gap-2 items-end">
+          <div className="bg-gradient-to-br from-[#fff1ee] to-[#ffe4de] rounded-xl p-1.5 px-3 shadow-sm border border-[#fcd38f]/30 flex flex-col items-center justify-center min-w-[65px] h-[52px] lg:h-[56px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-[#c24127] uppercase mb-0.5 flex items-center gap-1"><Clock size={10}/> 总计</div>
+            <div className="text-sm lg:text-base font-black text-[#a33620]">{formatHours(totalFocus)}<span className="text-[9px] text-[#c24127]/70 ml-0.5">h</span></div>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-1.5 px-3 shadow-sm border border-emerald-200/50 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-emerald-600 uppercase mb-0.5 flex items-center gap-1"><CheckCircle2 size={10}/> 任务</div>
-            <div className="text-base lg:text-lg font-black text-emerald-700">{totalTasks}</div>
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-1.5 px-3 shadow-sm border border-emerald-200/50 flex flex-col items-center justify-center min-w-[65px] h-[52px] lg:h-[56px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-emerald-600 uppercase mb-0.5 flex items-center gap-1"><CheckCircle2 size={10}/> 任务</div>
+            <div className="text-sm lg:text-base font-black text-emerald-700">{totalTasks}</div>
           </div>
-          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl p-1.5 px-3 shadow-sm border border-orange-200/50 flex flex-col items-center justify-center min-w-[70px] transform hover:scale-105 transition-transform">
-            <div className="text-[10px] font-bold tracking-wider text-orange-600 uppercase mb-0.5 flex items-center gap-1"><Flame size={10}/> 连续</div>
-            <div className="text-base lg:text-lg font-black text-orange-700">{streak}<span className="text-[10px] text-orange-600/70 ml-0.5">天</span></div>
+          <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-xl p-1.5 px-3 shadow-sm border border-orange-200/50 flex flex-col items-center justify-center min-w-[65px] h-[52px] lg:h-[56px] transform hover:scale-105 transition-transform">
+            <div className="text-[9px] font-bold tracking-wider text-orange-600 uppercase mb-0.5 flex items-center gap-1"><Flame size={10}/> 连续</div>
+            <div className="text-sm lg:text-base font-black text-orange-700">{streak}<span className="text-[9px] text-orange-600/70 ml-0.5">天</span></div>
           </div>
         </div>
       </div>
