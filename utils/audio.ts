@@ -17,8 +17,8 @@ export const playChime = () => {
       osc.frequency.setValueAtTime(frequency, startTime);
       
       gain.gain.setValueAtTime(0, startTime);
-      // Fast attack for crispness, but with much lower volume
-      gain.gain.linearRampToValueAtTime(0.04, startTime + 0.01);
+      // Fast attack for crispness, with moderate volume
+      gain.gain.linearRampToValueAtTime(0.08, startTime + 0.01);
       // Quick decay to make it short
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
       
