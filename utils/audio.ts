@@ -4,32 +4,31 @@ export const playChime = () => {
     if (!AudioContext) return;
     const ctx = new AudioContext();
     
-    const playNote = (frequency: number, delay: number, maxVol: number) => {
+    // Crisp, short bell sound
+    const playNote = (frequency: number, delay: number, duration: number) => {
       const startTime = ctx.currentTime + delay;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      const duration = 2.5;
 
       osc.connect(gain);
       gain.connect(ctx.destination);
       
-      osc.type = 'sine'; // Sine waves are the most soothing
+      osc.type = 'sine';
       osc.frequency.setValueAtTime(frequency, startTime);
       
       gain.gain.setValueAtTime(0, startTime);
-      // Gentle attack (fade in)
-      gain.gain.linearRampToValueAtTime(maxVol, startTime + 0.2);
-      // Long soothing decay (fade out)
+      // Fast attack for crispness, but with much lower volume
+      gain.gain.linearRampToValueAtTime(0.04, startTime + 0.01);
+      // Quick decay to make it short
       gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
       
       osc.start(startTime);
       osc.stop(startTime + duration);
     };
 
-    // Play a gentle C Major arpeggio: C5, E5, G5
-    playNote(523.25, 0, 0.15);       // C5
-    playNote(659.25, 0.15, 0.12);    // E5
-    playNote(783.99, 0.3, 0.08);     // G5
+    // Very short, crisp high-pitched "Ding-Ding"
+    playNote(1046.50, 0, 0.3);       // C6
+    playNote(1318.51, 0.15, 0.5);    // E6
 
   } catch (e) {
     console.error('Audio play failed', e);
