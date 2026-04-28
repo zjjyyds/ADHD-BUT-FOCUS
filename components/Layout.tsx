@@ -5,7 +5,6 @@ import { DailyData, ScheduleItem, TodoItem } from '../types';
 import { loadDailyData, saveDailyData, createEmptyDailyData } from '../services/storageService';
 import { useAuth } from './AuthProvider';
 import { playChime } from '../utils/audio';
-
 import logoImage from '../assets/logo.png';
 
 export type AppContextType = {
