@@ -6,6 +6,8 @@ import { loadDailyData, saveDailyData, createEmptyDailyData } from '../services/
 import { useAuth } from './AuthProvider';
 import { playChime } from '../utils/audio';
 
+import logoImage from '../assets/logo.png';
+
 export type AppContextType = {
   currentDate: string;
   setCurrentDate: (date: string) => void;
@@ -156,7 +158,7 @@ export default function Layout() {
       {/* Sidebar Navigation */}
       <nav className="w-20 flex flex-col items-center py-8 border-r border-slate-100 bg-white/50 backdrop-blur-xl z-20">
         <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-12 overflow-hidden bg-white shadow-sm border border-slate-100 p-1">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
+          <img src={logoImage} alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
         </div>
         
         <div className="flex flex-col gap-8 flex-1">
