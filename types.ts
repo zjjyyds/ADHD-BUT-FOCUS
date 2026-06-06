@@ -12,6 +12,20 @@ export interface TodoItem {
   completed: boolean;
 }
 
+export interface RandomTask {
+  id: string;
+  title: string;
+}
+
+export interface AppSettings {
+  pomodoroMinutes: number;
+  timeSliceMinutes: number;
+  breakMinutes: number;
+  isSoundEnabled: boolean;
+}
+
+export type AppState = 'idle' | 'running' | 'break';
+
 export interface DailyData {
   date: string; // YYYY-MM-DD
   schedule: ScheduleItem[];

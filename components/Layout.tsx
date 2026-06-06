@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut, FileText } from 'lucide-react';
+import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut, FileText, Shuffle } from 'lucide-react';
 import { DailyData, ScheduleItem, TodoItem } from '../types';
 import { loadDailyData, saveDailyData, createEmptyDailyData } from '../services/storageService';
 import { useAuth } from './AuthProvider';
@@ -167,6 +167,7 @@ export default function Layout() {
           <NavItem to="/tasks" icon={<CheckSquare size={24} strokeWidth={1.5} />} />
           <NavItem to="/stats" icon={<BarChart2 size={24} strokeWidth={1.5} />} />
           <NavItem to="/report" icon={<FileText size={24} strokeWidth={1.5} />} />
+          <NavItem to="/scheduler" icon={<Shuffle size={24} strokeWidth={1.5} />} />
         </div>
 
         <div className="mt-auto flex flex-col gap-4 items-center">

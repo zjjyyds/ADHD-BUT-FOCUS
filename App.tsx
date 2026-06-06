@@ -6,6 +6,7 @@ import TasksPage from './pages/TasksPage';
 import StatsPage from './pages/StatsPage';
 import ReportPage from './pages/ReportPage';
 import SettingsPage from './pages/SettingsPage';
+import RandomSchedulerPage from './pages/RandomSchedulerPage';
 import { AuthProvider } from './components/AuthProvider';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             <Route path="stats" element={<StatsPage />} />
             <Route path="report" element={<ReportPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="scheduler" element={<RandomSchedulerPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
