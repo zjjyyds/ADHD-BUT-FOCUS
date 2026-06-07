@@ -55,12 +55,17 @@ export default function StatsPage() {
         }
       }
 
-      // Chart data (last 7 days)
+      // Chart data (last 7 days ending on currentDate)
       const newChartData = [];
       for (let i = 6; i >= 0; i--) {
-        const d = new Date();
+        const [y, m, day] = currentDate.split('-').map(Number);
+        const d = new Date(y, m - 1, day);
         d.setDate(d.getDate() - i);
-        const dStr = d.toISOString().split('T')[0];
+        
+        const tzOffset = d.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, -1);
+        const dStr = localISOTime.split('T')[0];
+
         const data = dataMap.get(dStr) || createEmptyDailyData(dStr);
         newChartData.push({
           date: dStr,
@@ -87,7 +92,7 @@ export default function StatsPage() {
 
     fetchStats();
     return () => { isMounted = false; };
-  }, [user]);
+  }, [user, currentDate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -103,6 +108,10 @@ export default function StatsPage() {
   }, [currentDate, user]);
 
   const formatHours = (mins: number) => (mins / 60).toFixed(1);
+
+  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+  const todayStr = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+  const isToday = currentDate === todayStr;
 
   if (loading) {
     return (
@@ -143,7 +152,7 @@ export default function StatsPage() {
         {/* Chart */}
         <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white flex flex-col h-full overflow-hidden">
           <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-1 flex items-center gap-1.5 shrink-0">
-            <Award className="text-[#c24127]" size={16} /> 专注趋势 (最近7天)
+            <Award className="text-[#c24127]" size={16} /> {isToday ? '专注趋势 (最近7天)' : '专注趋势 (所选7天)'}
           </h2>
           <div className="flex-1 w-full min-h-0 relative mt-1 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none">
             <div className="absolute inset-0">

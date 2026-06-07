@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppState, RandomTask, AppSettings } from '../../types';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Settings } from 'lucide-react';
 import { playNotificationSound } from '../../utils/audio';
 import SettingsPanel from './SettingsPanel';
 import { loadDailyData, saveDailyData } from '../../services/storageService';
@@ -173,9 +173,17 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
          
          <div className="absolute top-6 left-0 right-0 flex justify-center">
             <span className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-widest uppercase transition-colors ${appState === 'idle' ? 'text-slate-400 bg-slate-200/50' : 'text-white bg-[#c24127] shadow-md shadow-[#c24127]/20 drop-shadow-sm'}`}>
-              {appState === 'idle' ? 'CPU IDLE' : appState === 'running' ? 'ACTIVE DISPATCH' : 'RECOVERY PHASE'}
+              {appState === 'idle' ? '待机' : appState === 'running' ? '执行中' : '休息中'}
             </span>
          </div>
+
+         <button 
+            onClick={() => setShowSettings(true)} 
+            className="absolute top-5 right-5 z-20 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-all border border-transparent hover:border-slate-200"
+            title="Configure System"
+         >
+            <Settings size={20} />
+         </button>
 
          <div className="flex flex-col items-center justify-center p-8 mt-4 text-center z-10 w-full max-w-2xl gap-2">
             {errorMsg && (
@@ -186,7 +194,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
             )}
 
             <h2 className="text-3xl md:text-4xl font-bold text-slate-800 drop-shadow-sm line-clamp-2 w-full h-[6rem] flex items-center justify-center leading-tight">
-                {appState === 'idle' ? 'Awaiting dispatch...' : appState === 'break' ? 'Break Time. Step away.' : currentTask?.title || 'Loading...'}
+                {appState === 'idle' ? '等待开始...' : appState === 'break' ? '休息一下。' : currentTask?.title || '加载中...'}
             </h2>
 
             <div className="font-mono text-[7rem] md:text-[9rem] font-medium leading-[0.9] tracking-tighter text-slate-800 tabular-nums">
@@ -201,20 +209,20 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
            onClick={appState === 'idle' ? undefined : (appState === 'running' ? skipSlice : undefined)}
            disabled={appState === 'idle' || appState === 'break'}
            className="flex-1 h-full bg-slate-100 text-slate-500 font-bold tracking-widest text-sm uppercase rounded-2xl hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 shadow-sm">
-          Skip Slice
+          SKIP SLICE
         </button>
 
         {appState === 'idle' ? (
             <button 
               onClick={handleStart}
               className="flex-[2] h-full bg-[#c24127] text-white font-bold tracking-widest text-sm uppercase rounded-2xl shadow-lg shadow-[#c24127]/30 hover:bg-[#a0301a] hover:scale-[1.01] transition-all">
-              Start Core
+              START CORE
             </button>
         ) : (
             <button 
               onClick={() => setIsPaused(!isPaused)}
               className={`flex-[2] h-full text-white font-bold tracking-widest text-sm uppercase rounded-2xl shadow-lg transition-all hover:scale-[1.01] ${isPaused ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' : 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30'}`}>
-              {isPaused ? 'Resume Core' : 'Pause Core'}
+              {isPaused ? 'RESUME CORE' : 'PAUSE CORE'}
             </button>
         )}
 
@@ -222,24 +230,15 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
            onClick={resetToIdle}
            disabled={appState === 'idle'}
            className="flex-1 h-full bg-slate-100 text-slate-500 font-bold tracking-widest text-sm uppercase rounded-2xl hover:bg-slate-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200 shadow-sm">
-          Abort Cycle
+          ABORT CYCLE
         </button>
       </div>
 
       {/* Footer Info Row */}
-      <div className="flex flex-col sm:flex-row items-center justify-between px-6 sm:px-8 py-4 border-t border-slate-100 bg-slate-50/50 text-xs font-mono text-slate-500 tracking-wider">
-         <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full shadow-sm ${appState === 'idle' ? 'bg-slate-300' : appState === 'running' ? 'bg-[#c24127] animate-pulse drop-shadow-[0_0_4px_rgba(194,65,39,0.5)]' : 'bg-blue-400 animate-pulse'}`} />
-                <span>CONNECTION: {appState.toUpperCase()}</span>
-            </div>
-            {appState === 'running' && (
-                <span>GLOBAL CYCLE LEFT: {formatTime(pomodoroLeft)}</span>
-            )}
-         </div>
-         <button onClick={() => setShowSettings(true)} className="mt-2 sm:mt-0 hover:text-slate-800 hover:font-bold transition-all">
-            [ Configure System ]
-         </button>
+      <div className="h-14 flex flex-col sm:flex-row items-center justify-center px-6 sm:px-8 border-t border-slate-100 bg-slate-50/50 text-xs font-mono text-slate-500 tracking-wider">
+         {appState === 'running' && (
+             <span>剩余总时间: {formatTime(pomodoroLeft)}</span>
+         )}
       </div>
 
       {showSettings && (

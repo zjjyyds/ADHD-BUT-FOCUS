@@ -45,8 +45,8 @@ export default function RandomSchedulerPage() {
     <div className="flex flex-col h-full w-full p-6 lg:p-8 bg-[#fdfbf9] overflow-hidden gap-6">
       {/* Page Header */}
       <div className="shrink-0 pb-4 border-b border-slate-200">
-         <span className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1 block">System Operation Mode</span>
-         <h1 className="text-3xl font-bold text-slate-800 tracking-tight uppercase">ADHD Scheduling</h1>
+         <span className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1 block">运行模式</span>
+         <h1 className="text-3xl font-bold text-slate-800 tracking-tight uppercase">随机专注</h1>
          <p className="text-sm text-slate-500 mt-1 uppercase tracking-widest">No hyperfocus, just scheduling.</p>
       </div>
 

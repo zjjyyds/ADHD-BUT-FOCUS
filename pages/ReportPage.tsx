@@ -2,20 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, createEmptyDailyData, getAllDailyData } from '../services/storageService';
-import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy } from 'lucide-react';
+import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
 
 export default function ReportPage() {
   const { currentDate } = useOutletContext<AppContextType>();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [weekOffset, setWeekOffset] = useState(0);
   
+  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+  const todayStr = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+  const isToday = currentDate === todayStr;
+
   const [reportData, setReportData] = useState<{
     totalFocus: number;
     totalTasks: number;
     mostProductiveDay: string;
     averageScore: number;
     weeklyData: any[];
+    weekStartDate: string;
+    weekEndDate: string;
   } | null>(null);
 
   const calculateDailyScore = (focusMinutes: number, tasks: any[]) => {
@@ -59,14 +66,25 @@ export default function ReportPage() {
       let tFocus = 0;
       let tTasks = 0;
       let maxFocus = -1;
-      let bestDay = '这周暂无';
+      let bestDay = '暂无';
       let totalScoreSum = 0;
       let daysWithRecords = 0;
       
+      let weekStartStr = '';
+      let weekEndStr = '';
+
       for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const dStr = d.toISOString().split('T')[0];
+        const [y, m, day] = currentDate.split('-').map(Number);
+        const d = new Date(y, m - 1, day);
+        d.setDate(d.getDate() - (i + weekOffset * 7));
+        
+        // Correctly format to YYYY-MM-DD in local time
+        const tzOffset = d.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(d.getTime() - tzOffset)).toISOString().slice(0, -1);
+        const dStr = localISOTime.split('T')[0];
+        if (i === 6) weekStartStr = dStr;
+        if (i === 0) weekEndStr = dStr;
+        
         const dayOfWeekStr = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()];
         const fullDayOfWeekStr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d.getDay()];
         const data = dataMap.get(dStr) || createEmptyDailyData(dStr);
@@ -107,7 +125,9 @@ export default function ReportPage() {
           totalTasks: tTasks,
           mostProductiveDay: bestDay,
           averageScore,
-          weeklyData
+          weeklyData,
+          weekStartDate: weekStartStr,
+          weekEndDate: weekEndStr
         });
         setLoading(false);
       }
@@ -115,7 +135,7 @@ export default function ReportPage() {
 
     fetchReport();
     return () => { isMounted = false; };
-  }, [user]);
+  }, [user, weekOffset, currentDate]);
 
   const handleExportWeeklyReport = () => {
     if (!reportData) return;
@@ -123,6 +143,7 @@ export default function ReportPage() {
     const formatHours = (mins: number) => (mins / 60).toFixed(1);
     
     let md = `# Weekly Focus & Productivity Report\n\n`;
+    md += `*Period: ${reportData.weekStartDate} to ${reportData.weekEndDate}*\n`;
     md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
     
     md += `## 📊 Summary\n`;
@@ -159,7 +180,44 @@ export default function ReportPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `weekly-report-${new Date().toISOString().split('T')[0]}.md`;
+    a.download = `weekly-report-${reportData.weekStartDate}-to-${reportData.weekEndDate}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportDailyReport = (day: any) => {
+    let md = `# Daily Focus & Productivity Report\n\n`;
+    md += `*Date: ${day.date} (${day.dayName})*\n`;
+    md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
+    
+    md += `## 📊 Summary\n`;
+    md += `- **Score**: ${day.scoreInfo.score > 0 ? `${day.scoreInfo.grade} (${day.scoreInfo.score} pts)` : 'No Record'}\n`;
+    md += `- **Focus Time**: ${day.focusMinutes} minutes\n`;
+    md += `- **Completed Tasks**: ${day.tasks.filter((t: any) => t.completed).length} / ${day.tasks.length}\n\n`;
+
+    if (day.tasks && day.tasks.length > 0) {
+      md += `## ✅ Tasks\n`;
+      day.tasks.forEach((t: any) => {
+        md += `- [${t.completed ? 'x' : ' '}] ${t.text}\n`;
+      });
+      md += `\n`;
+    }
+
+    if (day.schedule && day.schedule.length > 0) {
+      md += `## ⏱️ Schedule / Records\n`;
+      day.schedule.forEach((s: any) => {
+        md += `- \`${s.startTime || '???'}${s.endTime ? ` - ${s.endTime}` : ''}\`: ${s.title}\n`;
+      });
+      md += `\n`;
+    }
+    
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `daily-report-${day.date}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -189,20 +247,37 @@ export default function ReportPage() {
           </p>
         </div>
         
-        <button 
-          onClick={handleExportWeeklyReport}
-          className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 hover:shadow-lg transition-all shadow-md font-semibold text-sm whitespace-nowrap active:scale-95 group"
-        >
-          <Download size={18} className="group-hover:-translate-y-1 transition-transform" />
-          <span>导出 Markdown 周报</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex justify-between items-center bg-slate-100 rounded-xl p-1 shrink-0">
+            <button onClick={() => setWeekOffset(prev => prev + 1)} className="p-2 hover:bg-white rounded-lg transition-colors text-slate-600">
+              <ChevronLeft size={18} />
+            </button>
+            <div className="px-3 text-sm font-bold text-slate-700 min-w-[100px] text-center whitespace-nowrap">
+              {isToday 
+                ? (weekOffset === 0 ? '本周' : weekOffset === 1 ? '上一周' : `${weekOffset} 周前`) 
+                : (reportData ? `${reportData.weekStartDate.slice(5).replace('-', '/')} - ${reportData.weekEndDate.slice(5).replace('-', '/')}` : '...')
+              }
+            </div>
+            <button onClick={() => setWeekOffset(prev => Math.max(0, prev - 1))} disabled={weekOffset === 0} className="p-2 hover:bg-white rounded-lg transition-colors text-slate-600 disabled:opacity-30">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          <button 
+            onClick={handleExportWeeklyReport}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 hover:shadow-lg transition-all shadow-md font-semibold text-sm whitespace-nowrap active:scale-95 group"
+          >
+            <Download size={18} className="group-hover:-translate-y-1 transition-transform" />
+            <span>导出 Markdown 周报</span>
+          </button>
+        </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
         <div className="bg-gradient-to-br from-[#fff1ee] to-white rounded-2xl p-5 border border-[#fcd38f]/30 flex flex-col items-start shadow-sm">
           <div className="text-xs font-bold tracking-wider text-[#c24127]/80 uppercase mb-2 flex items-center gap-1.5">
-            <Clock size={14}/> 本周总时长
+            <Clock size={14}/> {(isToday && weekOffset === 0) ? '本周总时长' : '周期总时长'}
           </div>
           <div className="text-3xl font-black text-[#a33620] mt-auto">
             {formatHours(reportData.totalFocus)}
@@ -212,7 +287,7 @@ export default function ReportPage() {
 
         <div className="bg-gradient-to-br from-emerald-50 to-white rounded-2xl p-5 border border-emerald-200/50 flex flex-col items-start shadow-sm">
           <div className="text-xs font-bold tracking-wider text-emerald-600/80 uppercase mb-2 flex items-center gap-1.5">
-            <CheckCircle2 size={14}/> 本周完成任务
+            <CheckCircle2 size={14}/> {(isToday && weekOffset === 0) ? '本周完成任务' : '周期完成任务'}
           </div>
           <div className="text-3xl font-black text-emerald-700 mt-auto">
             {reportData.totalTasks}
@@ -224,14 +299,14 @@ export default function ReportPage() {
           <div className="text-xs font-bold tracking-wider text-indigo-600/80 uppercase mb-2 flex items-center gap-1.5">
             <Sparkles size={14}/> 最佳专注日
           </div>
-          <div className="text-2xl lg:text-3xl font-black text-indigo-700 mt-auto">
+          <div className="text-2xl lg:text-3xl font-black text-indigo-700 mt-auto truncate w-full">
             {reportData.mostProductiveDay}
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-5 border border-amber-200/50 flex flex-col items-start shadow-sm">
           <div className="text-xs font-bold tracking-wider text-amber-600/80 uppercase mb-2 flex items-center gap-1.5">
-            <Trophy size={14}/> 本周平均分
+            <Trophy size={14}/> {(isToday && weekOffset === 0) ? '本周平均分' : '周期平均分'}
           </div>
           <div className="text-3xl font-black text-amber-700 mt-auto">
             {reportData.averageScore}
@@ -242,13 +317,24 @@ export default function ReportPage() {
 
       {/* Weekly Visual Timeline */}
       <div className="bg-white rounded-[1.5rem] p-5 shadow-sm border border-slate-100 flex-1 min-h-0 flex flex-col">
-        <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 shrink-0">
-          <Calendar className="text-slate-400" size={18} /> 本周数据预览
-        </h2>
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <h2 className="text-base lg:text-lg font-bold text-slate-800 flex items-center gap-2">
+            <Calendar className="text-slate-400" size={18} /> {(isToday && weekOffset === 0) ? '本周数据预览' : '周期数据预览'}
+          </h2>
+          <span className="text-xs font-medium text-slate-400">{reportData.weekStartDate} ~ {reportData.weekEndDate}</span>
+        </div>
         
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-2 pb-4">
           {reportData.weeklyData.map((day, index) => (
-            <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors">
+            <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors group relative">
+              <button 
+                onClick={() => handleExportDailyReport(day)}
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-[#c24127] hover:bg-[#c24127]/10 rounded-lg transition-all opacity-100 sm:opacity-0 group-hover:opacity-100 bg-white shadow-sm sm:bg-transparent sm:shadow-none border border-slate-100 sm:border-transparent z-10"
+                title="导出今日数据"
+              >
+                <Download size={16} />
+              </button>
+
               <div className="w-24 shrink-0 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-slate-200 pb-2 sm:pb-0 sm:pr-4">
                 <span className="text-xs font-bold text-slate-400 mb-0.5">{day.date.substring(5)}</span>
                 <span className="text-base font-black text-slate-700 mb-1">{day.dayName}</span>
@@ -257,7 +343,7 @@ export default function ReportPage() {
                 </div>
               </div>
               
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 pt-1 sm:pt-0">
                 <div className="flex flex-col justify-start">
                   <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 mt-1 sm:mt-0">总专注时长</span>
                   <div className="font-bold text-slate-700 text-base sm:text-lg">
@@ -296,7 +382,7 @@ export default function ReportPage() {
                   )}
                 </div>
 
-                <div className="flex flex-col justify-start border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-4 overflow-hidden">
+                <div className="flex flex-col justify-start border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-4 overflow-hidden pr-8 sm:pr-0">
                   <span className="text-[10px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1 mt-1 sm:mt-0">日程与记录</span>
                   <div className="font-bold text-slate-700 text-base sm:text-lg mb-1.5">
                     <span className={day.schedule.length > 0 ? "text-indigo-600" : "text-slate-300 font-medium"}>
@@ -306,7 +392,7 @@ export default function ReportPage() {
                   {day.schedule.length > 0 && (
                     <div className="text-xs text-slate-500 space-y-1.5 w-full">
                       {day.schedule.slice(0, 3).map((s: any, idx: number) => (
-                        <div key={idx} className="flex items-center gap-2 truncate max-w-[180px] lg:max-w-xs">
+                        <div key={idx} className="flex items-center gap-2 truncate max-w-[150px] lg:max-w-xs">
                           <span className="text-indigo-400/90 font-semibold shrink-0 tabular-nums w-[34px]">{s.startTime}</span>
                           <div className="w-1 h-1 rounded-full bg-indigo-300 shrink-0"></div>
                           <span className="truncate" title={s.title}>{s.title}</span>

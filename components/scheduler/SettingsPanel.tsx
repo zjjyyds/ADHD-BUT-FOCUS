@@ -25,7 +25,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="font-bold text-slate-800 tracking-tight">System Configuration</h3>
+          <h3 className="font-bold text-slate-800 tracking-tight">系统设置</h3>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">
             <X size={18} />
           </button>
@@ -33,7 +33,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
 
         <div className="p-6 space-y-6">
           <label className="block">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Global Cycle (Minutes)</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">总番茄时长 (分钟)</div>
             <input
               type="number"
               min="1"
@@ -45,7 +45,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
           </label>
 
           <label className="block">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Time Slice (Minutes)</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">时间切片 (分钟)</div>
             <input
               type="number"
               min="1"
@@ -57,7 +57,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
           </label>
 
           <label className="block">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Break Time (Minutes)</div>
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">休息时长 (分钟)</div>
             <input
               type="number"
               min="1"
@@ -75,7 +75,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
               onChange={(e) => setLocalSettings({ ...localSettings, isSoundEnabled: e.target.checked })}
               className="w-5 h-5 text-[#c24127] rounded focus:ring-[#c24127] border-slate-300"
             />
-            <span className="text-sm font-bold text-slate-700 tracking-wide">Enable Audio Notifications</span>
+            <span className="text-sm font-bold text-slate-700 tracking-wide">启用声音提醒</span>
           </label>
         </div>
 
@@ -84,7 +84,7 @@ export default function SettingsPanel({ settings, setSettings, onClose }: Settin
             onClick={handleApply}
             className="w-full py-4 bg-[#c24127] text-white rounded-xl text-sm font-bold tracking-widest uppercase hover:bg-[#a0301a] shadow-lg shadow-[#c24127]/20 transition-all hover:scale-[1.02]"
           >
-            Apply Configuration
+            应用设置
           </button>
         </div>
       </div>
