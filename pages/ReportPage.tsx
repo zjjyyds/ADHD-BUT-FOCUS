@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, createEmptyDailyData, getAllDailyData } from '../services/storageService';
-import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
 
 export default function ReportPage() {
@@ -10,6 +10,8 @@ export default function ReportPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0);
+  const [copiedWeekly, setCopiedWeekly] = useState(false);
+  const [copiedDaily, setCopiedDaily] = useState<string | null>(null);
   
   const tzOffset = (new Date()).getTimezoneOffset() * 60000;
   const todayStr = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
@@ -137,35 +139,28 @@ export default function ReportPage() {
     return () => { isMounted = false; };
   }, [user, weekOffset, currentDate]);
 
-  const handleExportWeeklyReport = () => {
-    if (!reportData) return;
-    
+  const generateWeeklyMarkdown = () => {
+    if (!reportData) return '';
     const formatHours = (mins: number) => (mins / 60).toFixed(1);
-    
     let md = `# Weekly Focus & Productivity Report\n\n`;
     md += `*Period: ${reportData.weekStartDate} to ${reportData.weekEndDate}*\n`;
     md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
-    
     md += `## 📊 Summary\n`;
     md += `- **Total Focus Time**: ${formatHours(reportData.totalFocus)} hours (${reportData.totalFocus} minutes)\n`;
     md += `- **Completed Tasks**: ${reportData.totalTasks} items\n`;
     md += `- **Most Productive Day**: ${reportData.mostProductiveDay}\n`;
     md += `- **Average Score**: ${reportData.averageScore} / 100\n\n`;
-
     md += `## 📅 Daily Logs\n\n`;
-
     reportData.weeklyData.forEach(day => {
       md += `### ${day.date} (${day.dayName})\n`;
       md += `- **Score**: ${day.scoreInfo.score > 0 ? `${day.scoreInfo.grade} (${day.scoreInfo.score} pts)` : 'No Record'}\n`;
       md += `- **Focus Time**: ${day.focusMinutes} minutes\n`;
-      
       if (day.tasks && day.tasks.length > 0) {
         md += `- **Tasks**:\n`;
         day.tasks.forEach((t: any) => {
           md += `  - [${t.completed ? 'x' : ' '}] ${t.text}\n`;
         });
       }
-
       if (day.schedule && day.schedule.length > 0) {
         md += `- **Schedule / Records**:\n`;
         day.schedule.forEach((s: any) => {
@@ -174,29 +169,17 @@ export default function ReportPage() {
       }
       md += `\n`;
     });
-    
-    // Create and trigger download
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `weekly-report-${reportData.weekStartDate}-to-${reportData.weekEndDate}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    return md;
   };
 
-  const handleExportDailyReport = (day: any) => {
+  const generateDailyMarkdown = (day: any) => {
     let md = `# Daily Focus & Productivity Report\n\n`;
     md += `*Date: ${day.date} (${day.dayName})*\n`;
     md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
-    
     md += `## 📊 Summary\n`;
     md += `- **Score**: ${day.scoreInfo.score > 0 ? `${day.scoreInfo.grade} (${day.scoreInfo.score} pts)` : 'No Record'}\n`;
     md += `- **Focus Time**: ${day.focusMinutes} minutes\n`;
     md += `- **Completed Tasks**: ${day.tasks.filter((t: any) => t.completed).length} / ${day.tasks.length}\n\n`;
-
     if (day.tasks && day.tasks.length > 0) {
       md += `## ✅ Tasks\n`;
       day.tasks.forEach((t: any) => {
@@ -204,7 +187,6 @@ export default function ReportPage() {
       });
       md += `\n`;
     }
-
     if (day.schedule && day.schedule.length > 0) {
       md += `## ⏱️ Schedule / Records\n`;
       day.schedule.forEach((s: any) => {
@@ -212,7 +194,34 @@ export default function ReportPage() {
       });
       md += `\n`;
     }
-    
+    return md;
+  };
+
+  const handleExportWeeklyReport = () => {
+    const md = generateWeeklyMarkdown();
+    if (!md) return;
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `weekly-report-${reportData?.weekStartDate}-to-${reportData?.weekEndDate}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopyWeeklyReport = () => {
+    const md = generateWeeklyMarkdown();
+    if (!md) return;
+    navigator.clipboard.writeText(md).then(() => {
+      setCopiedWeekly(true);
+      setTimeout(() => setCopiedWeekly(false), 2000);
+    });
+  };
+
+  const handleExportDailyReport = (day: any) => {
+    const md = generateDailyMarkdown(day);
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -222,6 +231,14 @@ export default function ReportPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleCopyDailyReport = (day: any) => {
+    const md = generateDailyMarkdown(day);
+    navigator.clipboard.writeText(md).then(() => {
+      setCopiedDaily(day.date);
+      setTimeout(() => setCopiedDaily(null), 2000);
+    });
   };
 
   const formatHours = (mins: number) => (mins / 60).toFixed(1);
@@ -263,13 +280,22 @@ export default function ReportPage() {
             </button>
           </div>
 
-          <button 
-            onClick={handleExportWeeklyReport}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 hover:shadow-lg transition-all shadow-md font-semibold text-sm whitespace-nowrap active:scale-95 group"
-          >
-            <Download size={18} className="group-hover:-translate-y-1 transition-transform" />
-            <span>导出 Markdown 周报</span>
-          </button>
+          <div className="flex gap-2">
+            <button 
+              onClick={handleCopyWeeklyReport}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all font-semibold text-sm whitespace-nowrap active:scale-95"
+            >
+              {copiedWeekly ? <Check size={18} className="text-emerald-600" /> : <Copy size={18} />}
+              <span>{copiedWeekly ? '已复制' : '复制此页'}</span>
+            </button>
+            <button 
+              onClick={handleExportWeeklyReport}
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 hover:shadow-lg transition-all shadow-md font-semibold text-sm whitespace-nowrap active:scale-95 group"
+            >
+              <Download size={18} className="group-hover:-translate-y-1 transition-transform" />
+              <span>导出 Markdown 周报</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -327,13 +353,22 @@ export default function ReportPage() {
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-2 pb-4">
           {reportData.weeklyData.map((day, index) => (
             <div key={index} className="flex flex-col sm:flex-row gap-4 p-4 rounded-xl bg-slate-50/50 border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-colors group relative">
-              <button 
-                onClick={() => handleExportDailyReport(day)}
-                className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-[#c24127] hover:bg-[#c24127]/10 rounded-lg transition-all opacity-100 sm:opacity-0 group-hover:opacity-100 bg-white shadow-sm sm:bg-transparent sm:shadow-none border border-slate-100 sm:border-transparent z-10"
-                title="导出今日数据"
-              >
-                <Download size={16} />
-              </button>
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all z-10">
+                <button 
+                  onClick={() => handleCopyDailyReport(day)}
+                  className="p-1.5 sm:p-2 text-slate-400 hover:text-[#c24127] hover:bg-[#c24127]/10 rounded-lg bg-white shadow-sm sm:bg-transparent sm:shadow-none border border-slate-100 sm:border-transparent transition-all"
+                  title="复制今日数据"
+                >
+                  {copiedDaily === day.date ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                </button>
+                <button 
+                  onClick={() => handleExportDailyReport(day)}
+                  className="p-1.5 sm:p-2 text-slate-400 hover:text-[#c24127] hover:bg-[#c24127]/10 rounded-lg bg-white shadow-sm sm:bg-transparent sm:shadow-none border border-slate-100 sm:border-transparent transition-all"
+                  title="导出今日数据"
+                >
+                  <Download size={16} />
+                </button>
+              </div>
 
               <div className="w-24 shrink-0 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-slate-200 pb-2 sm:pb-0 sm:pr-4">
                 <span className="text-xs font-bold text-slate-400 mb-0.5">{day.date.substring(5)}</span>
