@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppState, RandomTask, AppSettings } from '../../types';
 import { AlertCircle, Settings } from 'lucide-react';
 import { playNotificationSound } from '../../utils/audio';
@@ -21,6 +21,8 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
   const [showSettings, setShowSettings] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const lastLoggedPomoLeftRef = useRef<number>(settings.pomodoroMinutes * 60);
+
   // Sync settings when idle
   useEffect(() => {
     if (appState === 'idle') {
@@ -29,7 +31,8 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
     }
   }, [settings, appState]);
 
-  const addFocusMinutes = async (minutes: number) => {
+  const addFocusMinutes = async (minutes: number, taskTitle?: string) => {
+    if (minutes <= 0) return;
     // Generate YYYY-MM-DD from local date
     const d = new Date();
     const tzOffset = d.getTimezoneOffset() * 60000;
@@ -48,13 +51,22 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
           id: crypto.randomUUID(),
           startTime: formatTimeStr(start),
           endTime: formatTimeStr(now),
-          title: `ADHD Core Cycle (${minutes}m)`,
+          title: taskTitle ? `${taskTitle} (${minutes}m)` : `ADHD Core Cycle (${minutes}m)`,
           type: 'auto'
       });
 
       await saveDailyData(data);
     } catch (e) {
       console.error("Failed to save focus data", e);
+    }
+  };
+
+  const logAccumulatedTime = (currentPomoLeft: number, taskTitle?: string, flush: boolean = false) => {
+    const secondsSpent = lastLoggedPomoLeftRef.current - currentPomoLeft;
+    const minutesToLog = flush ? Math.round(secondsSpent / 60) : Math.floor(secondsSpent / 60);
+    if (minutesToLog > 0) {
+      addFocusMinutes(minutesToLog, taskTitle);
+      lastLoggedPomoLeftRef.current -= minutesToLog * 60;
     }
   };
 
@@ -69,7 +81,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
           
           if (nextPomo <= 0) {
             // Trigger Break
-            addFocusMinutes(settings.pomodoroMinutes);
+            logAccumulatedTime(0, currentTask?.title, true);
             if (settings.isSoundEnabled) playNotificationSound('break');
             setAppState('break');
             setPomodoroLeft(settings.breakMinutes * 60);
@@ -82,6 +94,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
             const nextSlice = prevSlice - 1;
             if (nextSlice <= 0) {
               // Trigger Task Switch
+              logAccumulatedTime(nextPomo, currentTask?.title, false);
               if (settings.isSoundEnabled) playNotificationSound('slice');
               drawRandomTask();
               return settings.timeSliceMinutes * 60;
@@ -134,6 +147,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
     }
     setPomodoroLeft(settings.pomodoroMinutes * 60);
     setSliceLeft(settings.timeSliceMinutes * 60);
+    lastLoggedPomoLeftRef.current = settings.pomodoroMinutes * 60;
     setIsPaused(false);
     setAppState('running');
     drawRandomTask();
@@ -141,10 +155,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
 
   const resetToIdle = () => {
     if (appState === 'running') {
-      const minutesSpent = Math.floor((settings.pomodoroMinutes * 60 - pomodoroLeft) / 60);
-      if (minutesSpent > 0) {
-        addFocusMinutes(minutesSpent);
-      }
+      logAccumulatedTime(pomodoroLeft, currentTask?.title, true);
     }
     setAppState('idle');
     setIsPaused(false);
@@ -155,6 +166,7 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
 
   const skipSlice = () => {
     if (appState !== 'running') return;
+    logAccumulatedTime(pomodoroLeft, currentTask?.title, false);
     if (settings.isSoundEnabled) playNotificationSound('slice');
     drawRandomTask();
     setSliceLeft(settings.timeSliceMinutes * 60);
