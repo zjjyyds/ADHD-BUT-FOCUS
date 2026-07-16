@@ -7,6 +7,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { Clock, CheckCircle2, Flame, Award, Calendar as CalendarIcon } from 'lucide-react';
 import { DailyData } from '../types';
 import { useAuth } from '../components/AuthProvider';
+import { formatDurationText } from '../utils/timeUtils';
 
 export default function StatsPage() {
   const { currentDate, setCurrentDate } = useOutletContext<AppContextType>();
@@ -107,8 +108,6 @@ export default function StatsPage() {
     return () => { isMounted = false; };
   }, [currentDate, user]);
 
-  const formatHours = (mins: number) => (mins / 60).toFixed(1);
-
   const tzOffset = (new Date()).getTimezoneOffset() * 60000;
   const todayStr = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
   const isToday = currentDate === todayStr;
@@ -134,7 +133,7 @@ export default function StatsPage() {
         <div className="flex gap-2 items-end">
           <div className="bg-gradient-to-br from-[#fff1ee] to-[#ffe4de] rounded-xl p-1.5 px-3 shadow-sm border border-[#fcd38f]/30 flex flex-col items-center justify-center min-w-[65px] h-[52px] lg:h-[56px] transform hover:scale-105 transition-transform">
             <div className="text-[9px] font-bold tracking-wider text-[#c24127] uppercase mb-0.5 flex items-center gap-1"><Clock size={10}/> 总计</div>
-            <div className="text-sm lg:text-base font-black text-[#a33620]">{formatHours(totalFocus)}<span className="text-[9px] text-[#c24127]/70 ml-0.5">h</span></div>
+            <div className="text-sm lg:text-base font-black text-[#a33620]">{formatDurationText(totalFocus)}</div>
           </div>
           <div className="bg-gradient-to-br from-emerald-50 to-teal-100 rounded-xl p-1.5 px-3 shadow-sm border border-emerald-200/50 flex flex-col items-center justify-center min-w-[65px] h-[52px] lg:h-[56px] transform hover:scale-105 transition-transform">
             <div className="text-[9px] font-bold tracking-wider text-emerald-600 uppercase mb-0.5 flex items-center gap-1"><CheckCircle2 size={10}/> 任务</div>
@@ -246,7 +245,7 @@ export default function StatsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 lg:gap-3">
           <div className="bg-gradient-to-br from-[#fff1ee]/60 to-white rounded-xl p-2.5 lg:p-3 border border-[#eecdc6]/50 flex flex-col justify-center h-[100px] lg:h-[120px]">
             <div className="text-xs lg:text-sm font-bold text-[#c24127]/70 uppercase tracking-wider mb-0.5">专注时长</div>
-            <div className="text-2xl lg:text-3xl font-black text-[#c24127]">{selectedDayData.focusMinutes} <span className="text-sm lg:text-base text-[#c24127]/70">分钟</span></div>
+            <div className="text-2xl lg:text-3xl font-black text-[#c24127]">{formatDurationText(selectedDayData.focusMinutes)}</div>
           </div>
           
           <div className="bg-gradient-to-br from-emerald-50/60 to-white rounded-xl p-2.5 lg:p-3 border border-emerald-100/50 flex flex-col h-[100px] lg:h-[120px]">

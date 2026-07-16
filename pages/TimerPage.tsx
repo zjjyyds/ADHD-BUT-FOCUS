@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom';
 import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, getAllDailyData } from '../services/storageService';
 import { TodayDotsWidget, WeekDotsWidget, TimePerceptionWidget } from '../components/TimeWidgets';
+import { formatDurationText } from '../utils/timeUtils';
 
 const TimeWheelPicker: React.FC<{
   value: number;
@@ -124,6 +125,8 @@ export default function TimerPage() {
   const learningGoalMins = 8 * 60;
   const remainingLearningMins = Math.max(0, learningGoalMins - todayLearnMins);
   const diffMins = minutesUntilMidnight - remainingLearningMins;
+
+
 
   useEffect(() => {
     let isMounted = true;
@@ -444,14 +447,14 @@ export default function TimerPage() {
           
           <div className="flex items-end justify-between mb-4">
             <div>
-              <div className="text-3xl font-medium text-slate-800">
-                {(todayLearnMins / 60).toFixed(1)}h
+              <div className="text-2xl font-medium text-slate-800">
+                {formatDurationText(todayLearnMins)}
               </div>
               <div className="text-xs text-slate-400 mt-1">已学习</div>
             </div>
             <div className="text-right">
-              <div className="text-xl font-medium text-slate-600">
-                {(todayWorkMins / 60).toFixed(1)}h
+              <div className="text-lg font-medium text-slate-600">
+                {formatDurationText(todayWorkMins)}
               </div>
               <div className="text-xs text-slate-400 mt-1">工作</div>
             </div>
@@ -497,15 +500,15 @@ export default function TimerPage() {
               </div>
             ) : diffMins >= 0 ? (
               <div className="text-xs text-slate-500 leading-relaxed">
-                距0点还有 <span className="font-medium text-slate-700">{(minutesUntilMidnight / 60).toFixed(1)}h</span>，
-                需学习 <span className="font-medium text-indigo-600">{(remainingLearningMins / 60).toFixed(1)}h</span>。<br/>
-                宽裕 <span className="font-medium text-emerald-600">{(diffMins / 60).toFixed(1)}h</span>，时间充足。
+                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>，
+                需学习 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>。<br/>
+                宽裕 <span className="font-medium text-emerald-600">{formatDurationText(diffMins)}</span>，时间充足。
               </div>
             ) : (
               <div className="text-xs text-slate-500 leading-relaxed">
-                距0点还有 <span className="font-medium text-slate-700">{(minutesUntilMidnight / 60).toFixed(1)}h</span>，
-                需学习 <span className="font-medium text-indigo-600">{(remainingLearningMins / 60).toFixed(1)}h</span>。<br/>
-                缺口 <span className="font-medium text-[#c24127]">{(-diffMins / 60).toFixed(1)}h</span>，需抓紧时间。
+                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>，
+                需学习 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>。<br/>
+                缺口 <span className="font-medium text-[#c24127]">{formatDurationText(-diffMins)}</span>，需抓紧时间。
               </div>
             )}
           </div>

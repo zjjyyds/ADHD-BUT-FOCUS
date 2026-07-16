@@ -4,6 +4,7 @@ import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, createEmptyDailyData, getAllDailyData } from '../services/storageService';
 import { Download, FileText, CheckCircle2, Clock, Calendar, Sparkles, Trophy, ChevronLeft, ChevronRight, Copy, Check } from 'lucide-react';
 import { useAuth } from '../components/AuthProvider';
+import { formatDurationText } from '../utils/timeUtils';
 
 export default function ReportPage() {
   const { currentDate } = useOutletContext<AppContextType>();
@@ -141,12 +142,11 @@ export default function ReportPage() {
 
   const generateWeeklyMarkdown = () => {
     if (!reportData) return '';
-    const formatHours = (mins: number) => (mins / 60).toFixed(1);
     let md = `# Weekly Focus & Productivity Report\n\n`;
     md += `*Period: ${reportData.weekStartDate} to ${reportData.weekEndDate}*\n`;
     md += `*Generated At: ${new Date().toLocaleString()}*\n\n`;
     md += `## 📊 Summary\n`;
-    md += `- **Total Focus Time**: ${formatHours(reportData.totalFocus)} hours (${reportData.totalFocus} minutes)\n`;
+    md += `- **Total Focus Time**: ${formatDurationText(reportData.totalFocus)}\n`;
     md += `- **Completed Tasks**: ${reportData.totalTasks} items\n`;
     md += `- **Most Productive Day**: ${reportData.mostProductiveDay}\n`;
     md += `- **Average Score**: ${reportData.averageScore} / 100\n\n`;
@@ -241,8 +241,6 @@ export default function ReportPage() {
     });
   };
 
-  const formatHours = (mins: number) => (mins / 60).toFixed(1);
-
   if (loading || !reportData) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -305,9 +303,8 @@ export default function ReportPage() {
           <div className="text-xs font-bold tracking-wider text-[#c24127]/80 uppercase mb-2 flex items-center gap-1.5">
             <Clock size={14}/> {(isToday && weekOffset === 0) ? '本周总时长' : '周期总时长'}
           </div>
-          <div className="text-3xl font-black text-[#a33620] mt-auto">
-            {formatHours(reportData.totalFocus)}
-            <span className="text-lg text-[#c24127]/70 ml-1">小时</span>
+          <div className="text-2xl font-black text-[#a33620] mt-auto">
+            {formatDurationText(reportData.totalFocus)}
           </div>
         </div>
 
