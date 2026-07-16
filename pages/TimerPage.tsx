@@ -69,6 +69,7 @@ export default function TimerPage() {
   const { 
     handleTimerComplete, dailyData,
     taskName, setTaskName,
+    category, setCategory,
     inputMinutes, setInputMinutes,
     timeLeft, setTimeLeft,
     totalTime, setTotalTime,
@@ -98,6 +99,23 @@ export default function TimerPage() {
   });
 
   const progress = totalTime > 0 ? 1 - timeLeft / totalTime : 0;
+
+  const todayLearnMins = dailyData.schedule?.filter(s => s.category === 'learn').reduce((acc, curr) => {
+    // Parse start and end time to calculate duration
+    const [h1, m1] = curr.startTime.split(':').map(Number);
+    const [h2, m2] = curr.endTime.split(':').map(Number);
+    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (diff < 0) diff += 24 * 60; // handle cross midnight
+    return acc + diff;
+  }, 0) || 0;
+
+  const todayWorkMins = dailyData.schedule?.filter(s => s.category === 'work').reduce((acc, curr) => {
+    const [h1, m1] = curr.startTime.split(':').map(Number);
+    const [h2, m2] = curr.endTime.split(':').map(Number);
+    let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+    if (diff < 0) diff += 24 * 60;
+    return acc + diff;
+  }, 0) || 0;
 
   useEffect(() => {
     let isMounted = true;
@@ -187,6 +205,10 @@ export default function TimerPage() {
   const handleSkip = () => {
     setIsActive(false);
     if (mode === 'focus') {
+      const spentMinutes = Math.floor((totalTime - timeLeft) / 60);
+      if (spentMinutes > 0) {
+        handleTimerComplete(taskName, spentMinutes, category);
+      }
       setCompletedSessions(s => s + 1);
       setMode('break');
       setInputMinutes(5);
@@ -255,6 +277,26 @@ export default function TimerPage() {
             className="text-xl sm:text-2xl font-medium text-slate-700 bg-white border-2 border-slate-100 hover:border-slate-200 focus:border-[#c24127]/50 focus:ring-4 focus:ring-[#c24127]/10 outline-none text-center w-full max-w-md py-3 px-6 rounded-2xl transition-all shadow-sm leading-normal"
             placeholder="你正在专注什么？"
           />
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <button
+              onClick={() => setCategory('learn')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase transition-colors border ${category === 'learn' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-transparent text-slate-400 border-transparent hover:bg-slate-50'}`}
+            >
+              学习
+            </button>
+            <button
+              onClick={() => setCategory('work')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase transition-colors border ${category === 'work' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-transparent text-slate-400 border-transparent hover:bg-slate-50'}`}
+            >
+              工作
+            </button>
+            <button
+              onClick={() => setCategory('other')}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase transition-colors border ${category === 'other' ? 'bg-slate-100 text-slate-600 border-slate-200' : 'bg-transparent text-slate-400 border-transparent hover:bg-slate-50'}`}
+            >
+              其他
+            </button>
+          </div>
         </div>
 
         {/* Timer Circle */}
@@ -379,6 +421,65 @@ export default function TimerPage() {
               {stats.nextMilestone}
             </div>
           </div>
+        </div>
+
+        {/* Learning Goal Widget */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+              今日学习目标
+            </div>
+            <div className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
+              8h
+            </div>
+          </div>
+          
+          <div className="flex items-end justify-between mb-4">
+            <div>
+              <div className="text-3xl font-medium text-slate-800">
+                {(todayLearnMins / 60).toFixed(1)}h
+              </div>
+              <div className="text-xs text-slate-400 mt-1">已学习</div>
+            </div>
+            <div className="text-right">
+              <div className="text-xl font-medium text-slate-600">
+                {(todayWorkMins / 60).toFixed(1)}h
+              </div>
+              <div className="text-xs text-slate-400 mt-1">工作</div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4 flex">
+            <div 
+              className="h-full bg-indigo-500 transition-all duration-1000" 
+              style={{ width: `${Math.min(100, (todayLearnMins / (8 * 60)) * 100)}%` }}
+            ></div>
+          </div>
+          
+          {/* Ratio Bar */}
+          {todayLearnMins + todayWorkMins > 0 ? (
+            <div>
+              <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex justify-between">
+                <span>学习 {(todayLearnMins / (todayLearnMins + todayWorkMins) * 100).toFixed(0)}%</span>
+                <span>工作 {(todayWorkMins / (todayLearnMins + todayWorkMins) * 100).toFixed(0)}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                <div 
+                  className="h-full bg-indigo-400 transition-all duration-1000" 
+                  style={{ width: `${(todayLearnMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
+                ></div>
+                <div 
+                  className="h-full bg-emerald-400 transition-all duration-1000" 
+                  style={{ width: `${(todayWorkMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center mt-2">
+              暂无学习或工作记录
+            </div>
+          )}
         </div>
         </div>
       </div>

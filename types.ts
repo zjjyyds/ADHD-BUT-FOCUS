@@ -4,6 +4,7 @@ export interface ScheduleItem {
   endTime: string;   // HH:mm
   title: string;
   type: 'manual' | 'auto'; // 'auto' for timer generated
+  category?: 'learn' | 'work' | 'other';
 }
 
 export interface TodoItem {

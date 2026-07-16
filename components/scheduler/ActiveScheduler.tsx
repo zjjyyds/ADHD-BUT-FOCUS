@@ -52,7 +52,8 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
           startTime: formatTimeStr(start),
           endTime: formatTimeStr(now),
           title: taskTitle ? `${taskTitle} (${minutes}m)` : `ADHD Core Cycle (${minutes}m)`,
-          type: 'auto'
+          type: 'auto',
+          category: 'work'
       });
 
       await saveDailyData(data);

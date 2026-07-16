@@ -11,11 +11,13 @@ export type AppContextType = {
   setCurrentDate: (date: string) => void;
   dailyData: DailyData;
   setDailyData: React.Dispatch<React.SetStateAction<DailyData>>;
-  handleTimerComplete: (title: string, durationMinutes: number) => void;
+  handleTimerComplete: (title: string, durationMinutes: number, currentCategory?: 'learn' | 'work' | 'other') => void;
   
   // Timer State
   taskName: string;
   setTaskName: React.Dispatch<React.SetStateAction<string>>;
+  category: 'learn' | 'work' | 'other';
+  setCategory: React.Dispatch<React.SetStateAction<'learn' | 'work' | 'other'>>;
   inputMinutes: number;
   setInputMinutes: React.Dispatch<React.SetStateAction<number>>;
   timeLeft: number;
@@ -41,6 +43,7 @@ export default function Layout() {
 
   // Timer State
   const [taskName, setTaskName] = useState('Writing Project Proposal');
+  const [category, setCategory] = useState<'learn' | 'work' | 'other'>('work');
   const [inputMinutes, setInputMinutes] = useState<number>(25);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [totalTime, setTotalTime] = useState(25 * 60);
@@ -71,7 +74,7 @@ export default function Layout() {
     }
   }, [dailyData, dataLoaded]);
 
-  const handleTimerComplete = (title: string, durationMinutes: number) => {
+  const handleTimerComplete = (title: string, durationMinutes: number, currentCategory?: 'learn' | 'work' | 'other') => {
     const now = new Date();
     const endStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
     
@@ -83,7 +86,8 @@ export default function Layout() {
       title: title || '专注时钟',
       startTime: startStr,
       endTime: endStr,
-      type: 'auto'
+      type: 'auto',
+      category: currentCategory || 'other'
     };
     
     setDailyData(prev => {
@@ -116,7 +120,7 @@ export default function Layout() {
       playChime();
       
       if (mode === 'focus') {
-        handleTimerComplete(taskName, inputMinutes);
+        handleTimerComplete(taskName, inputMinutes, category);
         setCompletedSessions(s => s + 1);
         setMode('break');
         setInputMinutes(5);
@@ -142,6 +146,7 @@ export default function Layout() {
     dailyData, setDailyData,
     handleTimerComplete,
     taskName, setTaskName,
+    category, setCategory,
     inputMinutes, setInputMinutes,
     timeLeft, setTimeLeft,
     totalTime, setTotalTime,
