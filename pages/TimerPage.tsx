@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, SkipForward, Award } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipForward, Award, CheckCircle2 } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { AppContextType } from '../components/Layout';
 import { getStoredDates, loadDailyData, getAllDailyData } from '../services/storageService';
@@ -116,6 +116,14 @@ export default function TimerPage() {
     if (diff < 0) diff += 24 * 60;
     return acc + diff;
   }, 0) || 0;
+
+  const midnight = new Date(currentTime);
+  midnight.setHours(23, 59, 59, 999);
+  const minutesUntilMidnight = Math.floor((midnight.getTime() - currentTime.getTime()) / 60000);
+  
+  const learningGoalMins = 8 * 60;
+  const remainingLearningMins = Math.max(0, learningGoalMins - todayLearnMins);
+  const diffMins = minutesUntilMidnight - remainingLearningMins;
 
   useEffect(() => {
     let isMounted = true;
@@ -480,6 +488,27 @@ export default function TimerPage() {
               暂无学习或工作记录
             </div>
           )}
+
+          {/* Goal Analysis */}
+          <div className="mt-5 pt-4 border-t border-slate-100/50">
+            {remainingLearningMins === 0 ? (
+              <div className="text-xs font-medium text-emerald-600 flex items-center justify-center gap-1.5">
+                <CheckCircle2 size={14} /> 今日学习目标已达成！
+              </div>
+            ) : diffMins >= 0 ? (
+              <div className="text-xs text-slate-500 leading-relaxed">
+                距0点还有 <span className="font-medium text-slate-700">{(minutesUntilMidnight / 60).toFixed(1)}h</span>，
+                需学习 <span className="font-medium text-indigo-600">{(remainingLearningMins / 60).toFixed(1)}h</span>。<br/>
+                宽裕 <span className="font-medium text-emerald-600">{(diffMins / 60).toFixed(1)}h</span>，时间充足。
+              </div>
+            ) : (
+              <div className="text-xs text-slate-500 leading-relaxed">
+                距0点还有 <span className="font-medium text-slate-700">{(minutesUntilMidnight / 60).toFixed(1)}h</span>，
+                需学习 <span className="font-medium text-indigo-600">{(remainingLearningMins / 60).toFixed(1)}h</span>。<br/>
+                缺口 <span className="font-medium text-[#c24127]">{(-diffMins / 60).toFixed(1)}h</span>，需抓紧时间。
+              </div>
+            )}
+          </div>
         </div>
         </div>
       </div>
