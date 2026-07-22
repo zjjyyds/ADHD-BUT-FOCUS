@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut, FileText, Shuffle } from 'lucide-react';
-import { DailyData, ScheduleItem, TodoItem } from '../types';
-import { loadDailyData, saveDailyData, createEmptyDailyData } from '../services/storageService';
+import { DailyData, ScheduleItem, TodoItem, GlobalSettings } from '../types';
+import { loadDailyData, saveDailyData, createEmptyDailyData, loadGlobalSettings, saveGlobalSettings, defaultGlobalSettings } from '../services/storageService';
 import { useAuth } from './AuthProvider';
 import { playChime } from '../utils/audio';
 
@@ -11,7 +11,10 @@ export type AppContextType = {
   setCurrentDate: (date: string) => void;
   dailyData: DailyData;
   setDailyData: React.Dispatch<React.SetStateAction<DailyData>>;
+  globalSettings: GlobalSettings;
+  setGlobalSettings: React.Dispatch<React.SetStateAction<GlobalSettings>>;
   handleTimerComplete: (title: string, durationMinutes: number, currentCategory?: 'learn' | 'work' | 'other') => void;
+
   
   // Timer State
   taskName: string;
@@ -38,10 +41,13 @@ export default function Layout() {
   const getTodayString = () => new Date().toLocaleDateString('en-CA');
   const [currentDate, setCurrentDate] = useState(getTodayString());
   const [dailyData, setDailyData] = useState<DailyData>(createEmptyDailyData(currentDate));
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(defaultGlobalSettings);
   const { user, signIn, logOut, loading } = useAuth();
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Timer State
+
   const [taskName, setTaskName] = useState('Writing Project Proposal');
   const [category, setCategory] = useState<'learn' | 'work' | 'other'>('work');
   const [inputMinutes, setInputMinutes] = useState<number>(25);
@@ -62,8 +68,17 @@ export default function Layout() {
         setDataLoaded(true);
       }
     };
+    const loadSettings = async () => {
+      setSettingsLoaded(false);
+      const settings = await loadGlobalSettings();
+      if (isMounted) {
+        setGlobalSettings(settings);
+        setSettingsLoaded(true);
+      }
+    };
     if (!loading) {
       loadData();
+      loadSettings();
     }
     return () => { isMounted = false; };
   }, [currentDate, user, loading]);
@@ -73,6 +88,12 @@ export default function Layout() {
       saveDailyData(dailyData);
     }
   }, [dailyData, dataLoaded]);
+
+  useEffect(() => {
+    if (settingsLoaded) {
+      saveGlobalSettings(globalSettings);
+    }
+  }, [globalSettings, settingsLoaded]);
 
   const handleTimerComplete = (title: string, durationMinutes: number, currentCategory?: 'learn' | 'work' | 'other') => {
     const now = new Date();
@@ -144,6 +165,7 @@ export default function Layout() {
   const contextValue: AppContextType = {
     currentDate, setCurrentDate,
     dailyData, setDailyData,
+    globalSettings, setGlobalSettings,
     handleTimerComplete,
     taskName, setTaskName,
     category, setCategory,

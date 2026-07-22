@@ -32,15 +32,13 @@ const TimeWheelPicker: React.FC<{
   };
 
   return (
-    <>
-      <div className="fixed inset-0 z-10" onClick={onClose} />
-      <div 
-        className="relative z-20 h-[192px] w-48 overflow-hidden flex flex-col items-center justify-center"
-        style={{ 
-          maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)', 
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)' 
-        }}
-      >
+    <div 
+      className="relative z-20 h-[192px] w-48 overflow-hidden flex flex-col items-center justify-center"
+      style={{ 
+        maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)', 
+        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)' 
+      }}
+    >
         <div className="absolute top-1/2 left-0 w-full h-[64px] -translate-y-1/2 border-y-2 border-[#c24127]/20 bg-[#c24127]/5 pointer-events-none rounded-2xl"></div>
         <div 
           ref={scrollRef}
@@ -62,13 +60,13 @@ const TimeWheelPicker: React.FC<{
           ))}
         </div>
       </div>
-    </>
   );
 };
 
 export default function TimerPage() {
   const { 
     handleTimerComplete, dailyData,
+    globalSettings,
     taskName, setTaskName,
     category, setCategory,
     inputMinutes, setInputMinutes,
@@ -278,6 +276,12 @@ export default function TimerPage() {
         
         {/* Header Texts */}
         <div className="text-center mb-12">
+          {globalSettings.learningGoal && (
+            <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 bg-[#c24127]/5 border border-[#c24127]/10 rounded-2xl text-[#c24127] text-sm font-medium">
+              <Award size={16} className="shrink-0" />
+              <span>目标：{globalSettings.learningGoal}</span>
+            </div>
+          )}
           <div className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mb-3">
             {mode === 'focus' ? '当前专注' : '休息一下'}
           </div>
@@ -329,19 +333,48 @@ export default function TimerPage() {
           
           <div className="flex flex-col items-center justify-center">
             {isEditingTime ? (
-              <div className="mb-4">
-                <TimeWheelPicker 
-                  value={inputMinutes} 
-                  onChange={handleWheelChange} 
-                  onClose={() => setIsEditingTime(false)} 
-                />
+              <div className="flex flex-col items-center mb-6 relative z-20">
+                <div className="fixed inset-0 z-10" onClick={() => setIsEditingTime(false)} />
+                <div className="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 flex flex-col items-center gap-4 relative z-20">
+                  <TimeWheelPicker 
+                    value={inputMinutes} 
+                    onChange={handleWheelChange} 
+                    onClose={() => setIsEditingTime(false)} 
+                  />
+                  {globalSettings.presetTimes && globalSettings.presetTimes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 justify-center max-w-[200px]">
+                      {globalSettings.presetTimes.map(pt => (
+                        <button
+                          key={pt}
+                          onClick={() => {
+                            setInputMinutes(pt);
+                            setTimeLeft(pt * 60);
+                            setTotalTime(pt * 60);
+                            setIsEditingTime(false);
+                          }}
+                          className={`w-[52px] h-10 rounded-xl text-sm font-semibold transition-all ${inputMinutes === pt ? 'bg-[#c24127] text-white shadow-md shadow-[#c24127]/20' : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:scale-105'}`}
+                        >
+                          {pt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => setIsEditingTime(false)} 
+                    className="w-full py-2.5 mt-2 bg-[#c24127]/10 text-[#c24127] rounded-xl text-sm font-bold tracking-widest hover:bg-[#c24127]/20 transition-colors uppercase"
+                  >
+                    确定
+                  </button>
+                </div>
               </div>
             ) : (
-              <div 
-                className={`text-[80px] font-mono font-semibold text-slate-800 tabular-nums tracking-tighter leading-none mb-6 relative z-10 ${!isActive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
-                onClick={handleTimeClick}
-              >
-                {formatTime(timeLeft)}
+              <div className="flex flex-col items-center">
+                <div 
+                  className={`text-[80px] font-mono font-semibold text-slate-800 tabular-nums tracking-tighter leading-none mb-6 relative z-10 ${!isActive ? 'cursor-pointer hover:scale-105 transition-transform' : ''}`}
+                  onClick={handleTimeClick}
+                >
+                  {formatTime(timeLeft)}
+                </div>
               </div>
             )}
             {/* Session Dots */}

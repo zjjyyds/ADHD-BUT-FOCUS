@@ -18,6 +18,11 @@ export interface RandomTask {
   title: string;
 }
 
+export interface GlobalSettings {
+  learningGoal: string;
+  presetTimes: number[];
+}
+
 export interface AppSettings {
   pomodoroMinutes: number;
   timeSliceMinutes: number;

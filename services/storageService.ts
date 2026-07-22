@@ -1,4 +1,4 @@
-import { DailyData } from '../types';
+import { DailyData, GlobalSettings } from '../types';
 import { db, auth } from '../firebase';
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot } from 'firebase/firestore';
 
@@ -11,6 +11,57 @@ export const createEmptyDailyData = (date: string): DailyData => ({
   todos: [],
   focusMinutes: 0,
 });
+
+export const defaultGlobalSettings: GlobalSettings = {
+  learningGoal: '',
+  presetTimes: [5, 15, 25, 45, 60]
+};
+
+export const saveGlobalSettings = async (settings: GlobalSettings): Promise<void> => {
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const docRef = doc(db, 'users', user.uid, 'settings', 'global');
+      await setDoc(docRef, settings);
+    } catch (error) {
+      console.error("Failed to save settings to Firestore", error);
+    }
+  } else {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.error("Failed to save settings", error);
+    }
+  }
+};
+
+export const loadGlobalSettings = async (): Promise<GlobalSettings> => {
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const docRef = doc(db, 'users', user.uid, 'settings', 'global');
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as GlobalSettings;
+        return { ...defaultGlobalSettings, ...data };
+      }
+    } catch (error) {
+      console.error("Failed to load settings from Firestore", error);
+    }
+  }
+  
+  // Fallback to local storage
+  const stored = localStorage.getItem(SETTINGS_KEY);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      return { ...defaultGlobalSettings, ...parsed };
+    } catch (e) {
+      console.error("Settings data corruption", e);
+    }
+  }
+  return { ...defaultGlobalSettings };
+};
 
 let cachedAllData: DailyData[] | null = null;
 let lastFetchTime = 0;
