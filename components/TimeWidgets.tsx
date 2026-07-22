@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { memo } from 'react';
 
-export const TodayDotsWidget: React.FC<{ currentTime: Date }> = ({ currentTime }) => {
+export const TodayDotsWidget: React.FC<{ currentTime: Date }> = memo(({ currentTime }) => {
   const totalHours = 24;
   const filledHours = currentTime.getHours();
   
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
+    <div className="bg-white/80  rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
       <div className="flex justify-between items-center mb-5">
         <div className="font-bold text-slate-800 text-base">今日</div>
         <div className="text-xs font-bold text-[#c24127] bg-[#c24127]/10 px-2.5 py-1 rounded-full">{filledHours} / {totalHours} H</div>
@@ -27,16 +27,16 @@ export const TodayDotsWidget: React.FC<{ currentTime: Date }> = ({ currentTime }
       </div>
     </div>
   );
-};
+});
 
-export const WeekDotsWidget: React.FC<{ currentTime: Date }> = ({ currentTime }) => {
+export const WeekDotsWidget: React.FC<{ currentTime: Date }> = memo(({ currentTime }) => {
   const totalHours = 168;
   // Assuming Monday is the first day of the week (0-6)
   const dayOfWeek = (currentTime.getDay() + 6) % 7; 
   const filledHours = dayOfWeek * 24 + currentTime.getHours();
   
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
+    <div className="bg-white/80  rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
       <div className="flex justify-between items-center mb-5">
         <div className="font-bold text-slate-800 text-base">本周</div>
         <div className="text-xs font-bold text-[#c24127] bg-[#c24127]/10 px-2.5 py-1 rounded-full">{filledHours} / {totalHours} H</div>
@@ -58,9 +58,9 @@ export const WeekDotsWidget: React.FC<{ currentTime: Date }> = ({ currentTime })
       </div>
     </div>
   );
-};
+});
 
-export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = ({ currentTime }) => {
+export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ currentTime }) => {
   const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
   const dayProgress = currentHour / 24;
   
@@ -86,7 +86,7 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = ({ currentT
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
+    <div className="bg-white/80  rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
       <div className="flex justify-between items-center mb-5">
         <div className="font-bold text-slate-800 text-base">时间感知</div>
         <div className="text-[10px] font-bold text-[#c24127] bg-[#c24127]/10 px-2 py-1 rounded-full uppercase tracking-wider">概览</div>
@@ -149,4 +149,4 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = ({ currentT
       </div>
     </div>
   );
-};
+});

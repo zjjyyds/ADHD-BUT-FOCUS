@@ -159,7 +159,7 @@ export default function Layout() {
   return (
     <div className="flex h-screen w-full bg-[#fdfbf9] font-sans text-slate-800 overflow-hidden">
       {/* Sidebar Navigation */}
-      <nav className="w-20 flex flex-col items-center py-8 border-r border-slate-100 bg-white/50 backdrop-blur-xl z-20">
+      <nav className="w-20 flex flex-col items-center py-8 border-r border-slate-100 bg-white/50  z-20">
         <div className="w-12 h-12 rounded-xl bg-[#c24127] text-white flex items-center justify-center mb-12 shadow-sm border border-[#a0301a]">
           <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>

@@ -387,7 +387,7 @@ export default function TimerPage() {
       <div className="w-[320px] p-8 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-l border-slate-100/50 bg-white/30 backdrop-blur-sm">
         <div className="flex flex-col gap-6 my-auto">
           {/* Today's Streak */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
+        <div className="bg-white/80  rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
           <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-6">
             今日专注趋势
           </div>
@@ -417,7 +417,7 @@ export default function TimerPage() {
         </div>
 
         {/* Next Milestone */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 flex items-center gap-4 relative overflow-hidden shrink-0">
+        <div className="bg-white/80  rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 flex items-center gap-4 relative overflow-hidden shrink-0">
           <div className="absolute bottom-0 left-0 h-1.5 bg-[#c24127]/10 w-full">
             <div className="h-full bg-[#c24127] transition-all duration-1000 rounded-r-full" style={{ width: `${stats.progressToMilestone}%` }}></div>
           </div>
@@ -435,7 +435,7 @@ export default function TimerPage() {
         </div>
 
         {/* Learning Goal Widget */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
+        <div className="bg-white/80  rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
           <div className="flex justify-between items-center mb-6">
             <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
               今日学习目标

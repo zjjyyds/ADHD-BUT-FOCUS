@@ -252,7 +252,7 @@ export default function ReportPage() {
   return (
     <div className="p-4 lg:p-6 h-full flex flex-col gap-4 overflow-y-auto no-scrollbar">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0 shadow-sm border border-slate-100 bg-white/80 backdrop-blur-xl rounded-2xl p-4 lg:px-6 lg:py-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0 shadow-sm border border-slate-100 bg-white/80  rounded-2xl p-4 lg:px-6 lg:py-4">
         <div>
           <h1 className="text-xl lg:text-2xl font-bold text-slate-800 mb-1 flex items-center gap-2">
             <FileText className="text-[#c24127]" size={24} /> 周报与洞察

@@ -112,6 +112,77 @@ export default function StatsPage() {
   const todayStr = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
   const isToday = currentDate === todayStr;
 
+  const chartComponent = useMemo(() => (
+    <div className="absolute inset-0">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart 
+          data={chartData} 
+          margin={{ top: 5, right: 5, left: -25, bottom: 15 }} 
+          onClick={(state: any) => {
+            if (state && state.activePayload && state.activePayload.length > 0) {
+              setCurrentDate(state.activePayload[0].payload.date);
+            }
+          }}
+          style={{ cursor: 'pointer' }}
+        >
+          <defs>
+            <linearGradient id="colorFocus" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#c24127" stopOpacity={1}/>
+              <stop offset="100%" stopColor="#eecdc6" stopOpacity={1}/>
+            </linearGradient>
+            <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#f1f5f9" stopOpacity={1}/>
+              <stop offset="100%" stopColor="#e2e8f0" stopOpacity={1}/>
+            </linearGradient>
+          </defs>
+          <XAxis 
+            dataKey="dayName" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }} 
+            dy={5}
+            onClick={(data: any) => {
+              const clickedData = chartData.find(d => d.dayName === data.value);
+              if (clickedData && clickedData.date) {
+                setCurrentDate(clickedData.date);
+              }
+            }}
+          />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
+          />
+          <Tooltip 
+            cursor={{ fill: '#f8fafc' }}
+            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold', outline: 'none', fontSize: '12px', padding: '8px' }}
+            formatter={(value: number) => [`${value} 分钟`, '专注时长']}
+          />
+          <Bar 
+            dataKey="minutes" 
+            radius={[4, 4, 4, 4]} 
+            maxBarSize={30}
+            cursor="pointer"
+            onClick={(data: any) => {
+              if (data && data.date) {
+                setCurrentDate(data.date);
+              } else if (data && data.payload && data.payload.date) {
+                setCurrentDate(data.payload.date);
+              }
+            }}
+          >
+            {chartData.map((entry, index) => (
+              <Cell 
+                key={`cell-${index}`} 
+                fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} 
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  ), [chartData, currentDate, setCurrentDate]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -149,80 +220,12 @@ export default function StatsPage() {
       {/* Middle Row: Chart & Calendar */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-2 lg:gap-3 min-h-0">
         {/* Chart */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white flex flex-col h-full overflow-hidden">
+        <div className="lg:col-span-2 bg-white/80  rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white flex flex-col h-full overflow-hidden">
           <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-1 flex items-center gap-1.5 shrink-0">
             <Award className="text-[#c24127]" size={16} /> {isToday ? '专注趋势 (最近7天)' : '专注趋势 (所选7天)'}
           </h2>
           <div className="flex-1 w-full min-h-0 relative mt-1 [&_*:focus]:outline-none [&_*:focus-visible]:outline-none">
-            <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={chartData} 
-                  margin={{ top: 5, right: 5, left: -25, bottom: 15 }} 
-                  onClick={(state) => {
-                    if (state && state.activePayload && state.activePayload.length > 0) {
-                      setCurrentDate(state.activePayload[0].payload.date);
-                    }
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <defs>
-                    <linearGradient id="colorFocus" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#c24127" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#eecdc6" stopOpacity={1}/>
-                    </linearGradient>
-                    <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f1f5f9" stopOpacity={1}/>
-                      <stop offset="100%" stopColor="#e2e8f0" stopOpacity={1}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis 
-                    dataKey="dayName" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }} 
-                    dy={5}
-                    onClick={(data) => {
-                      // Find the corresponding date from chartData based on the dayName
-                      const clickedData = chartData.find(d => d.dayName === data.value);
-                      if (clickedData && clickedData.date) {
-                        setCurrentDate(clickedData.date);
-                      }
-                    }}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 600 }}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: '#f8fafc' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold', outline: 'none', fontSize: '12px', padding: '8px' }}
-                    formatter={(value: number) => [`${value} 分钟`, '专注时长']}
-                  />
-                  <Bar 
-                    dataKey="minutes" 
-                    radius={[4, 4, 4, 4]} 
-                    maxBarSize={30}
-                    cursor="pointer"
-                    onClick={(data) => {
-                      if (data && data.date) {
-                        setCurrentDate(data.date);
-                      } else if (data && data.payload && data.payload.date) {
-                        setCurrentDate(data.payload.date);
-                      }
-                    }}
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.date === currentDate ? 'url(#colorFocus)' : 'url(#colorInactive)'} 
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {chartComponent}
           </div>
         </div>
 
@@ -236,7 +239,7 @@ export default function StatsPage() {
       </div>
 
       {/* Bottom Row: Daily Details */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white shrink-0">
+      <div className="bg-white/80  rounded-[1.5rem] p-3 lg:p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-white shrink-0">
         <h2 className="text-lg lg:text-xl font-bold text-slate-800 mb-2 flex items-center gap-1.5">
           <CalendarIcon className="text-[#c24127]" size={18} /> 
           {currentDate} 详情
