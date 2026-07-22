@@ -185,9 +185,9 @@ export const TimeRingsWidget: React.FC<{ now: Date }> = ({ now }) => {
                     <circle cx={center} cy={center} r={rDay} fill="none" stroke="#f1f5f9" strokeWidth={strokeWidth} strokeLinecap="round" />
 
                     {/* Progress */}
-                    <circle cx={center} cy={center} fill="none" stroke={cYear} strokeWidth={strokeWidth} strokeLinecap="round" className="transition-all duration-1000 ease-out" {...getCircleProps(rYear, yearProgress)} />
-                    <circle cx={center} cy={center} fill="none" stroke={cMonth} strokeWidth={strokeWidth} strokeLinecap="round" className="transition-all duration-1000 ease-out" {...getCircleProps(rMonth, monthProgress)} />
-                    <circle cx={center} cy={center} fill="none" stroke={cDay} strokeWidth={strokeWidth} strokeLinecap="round" className="transition-all duration-1000 ease-out" {...getCircleProps(rDay, dayProgress)} />
+                    <circle cx={center} cy={center} fill="none" stroke={cYear} strokeWidth={strokeWidth} strokeLinecap="round"  {...getCircleProps(rYear, yearProgress)} />
+                    <circle cx={center} cy={center} fill="none" stroke={cMonth} strokeWidth={strokeWidth} strokeLinecap="round"  {...getCircleProps(rMonth, monthProgress)} />
+                    <circle cx={center} cy={center} fill="none" stroke={cDay} strokeWidth={strokeWidth} strokeLinecap="round"  {...getCircleProps(rDay, dayProgress)} />
 
                     {/* Markers at Tips */}
                     <Marker r={rYear} p={yearProgress} label="Y" color={cYear} />

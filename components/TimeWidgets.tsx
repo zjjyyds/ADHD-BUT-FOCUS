@@ -102,11 +102,11 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
             
             {/* Progress */}
             <circle cx={center} cy={center} r={radius.y} fill="none" stroke="#8c2b1a" strokeWidth={strokeWidth} strokeLinecap="round"
-              strokeDasharray={Math.PI * radius.y * 2} strokeDashoffset={calcOffset(radius.y, yearProgress)} className="transition-all duration-1000" />
+              strokeDasharray={Math.PI * radius.y * 2} strokeDashoffset={calcOffset(radius.y, yearProgress)} className="" />
             <circle cx={center} cy={center} r={radius.m} fill="none" stroke="#c24127" strokeWidth={strokeWidth} strokeLinecap="round"
-              strokeDasharray={Math.PI * radius.m * 2} strokeDashoffset={calcOffset(radius.m, monthProgress)} className="transition-all duration-1000" />
+              strokeDasharray={Math.PI * radius.m * 2} strokeDashoffset={calcOffset(radius.m, monthProgress)} className="" />
             <circle cx={center} cy={center} r={radius.d} fill="none" stroke="#e87a65" strokeWidth={strokeWidth} strokeLinecap="round"
-              strokeDasharray={Math.PI * radius.d * 2} strokeDashoffset={calcOffset(radius.d, dayProgress)} className="transition-all duration-1000" />
+              strokeDasharray={Math.PI * radius.d * 2} strokeDashoffset={calcOffset(radius.d, dayProgress)} className="" />
           </svg>
           
           {/* Labels */}
@@ -124,7 +124,7 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
               <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Today</div>
             </div>
             <div className="h-1.5 bg-[#fff1ee] rounded-full overflow-hidden">
-              <div className="h-full bg-[#e87a65] rounded-full transition-all duration-1000" style={{ width: `${dayProgress * 100}%` }}></div>
+              <div className="h-full bg-[#e87a65] rounded-full " style={{ width: `${dayProgress * 100}%` }}></div>
             </div>
           </div>
           <div>
@@ -133,7 +133,7 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
               <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Month</div>
             </div>
             <div className="h-1.5 bg-[#fff1ee] rounded-full overflow-hidden">
-              <div className="h-full bg-[#c24127] rounded-full transition-all duration-1000" style={{ width: `${monthProgress * 100}%` }}></div>
+              <div className="h-full bg-[#c24127] rounded-full " style={{ width: `${monthProgress * 100}%` }}></div>
             </div>
           </div>
           <div>
@@ -142,7 +142,7 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
               <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Year</div>
             </div>
             <div className="h-1.5 bg-[#fff1ee] rounded-full overflow-hidden">
-              <div className="h-full bg-[#8c2b1a] rounded-full transition-all duration-1000" style={{ width: `${yearProgress * 100}%` }}></div>
+              <div className="h-full bg-[#8c2b1a] rounded-full " style={{ width: `${yearProgress * 100}%` }}></div>
             </div>
           </div>
         </div>

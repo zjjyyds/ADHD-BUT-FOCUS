@@ -72,57 +72,55 @@ export default function ActiveScheduler({ tasks, settings, setSettings }: Active
   };
 
   // Core Execution Logic
+  const handledPomoRef = useRef(false);
+  const handledSliceRef = useRef(false);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (appState === 'running' && !isPaused) {
       interval = setInterval(() => {
-        setPomodoroLeft(prevPomo => {
-          const nextPomo = prevPomo - 1;
-          
-          if (nextPomo <= 0) {
-            // Trigger Break
-            logAccumulatedTime(0, currentTask?.title, true);
-            if (settings.isSoundEnabled) playNotificationSound('break');
-            setAppState('break');
-            setPomodoroLeft(settings.breakMinutes * 60);
-            setCurrentTask(null);
-            return 0;
-          }
-
-          // Not breaking yet, let's check slice
-          setSliceLeft(prevSlice => {
-            const nextSlice = prevSlice - 1;
-            if (nextSlice <= 0) {
-              // Trigger Task Switch
-              logAccumulatedTime(nextPomo, currentTask?.title, false);
-              if (settings.isSoundEnabled) playNotificationSound('slice');
-              drawRandomTask();
-              return settings.timeSliceMinutes * 60;
-            }
-            return nextSlice;
-          });
-
-          return nextPomo;
-        });
+        setPomodoroLeft(prev => prev > 0 ? prev - 1 : 0);
+        setSliceLeft(prev => prev > 0 ? prev - 1 : 0);
       }, 1000);
     } else if (appState === 'break' && !isPaused) {
       interval = setInterval(() => {
-        setPomodoroLeft(prevBreak => {
-          const nextBreak = prevBreak - 1;
-          if (nextBreak <= 0) {
-            // Break is over
-            if (settings.isSoundEnabled) playNotificationSound('work');
-            resetToIdle();
-            return 0;
-          }
-          return nextBreak;
-        });
+        setPomodoroLeft(prev => prev > 0 ? prev - 1 : 0);
       }, 1000);
     }
 
     return () => clearInterval(interval);
-  }, [appState, isPaused, settings, currentTask, tasks]);
+  }, [appState, isPaused]);
+
+  useEffect(() => {
+    if (pomodoroLeft > 0) handledPomoRef.current = false;
+    if (sliceLeft > 0) handledSliceRef.current = false;
+  }, [pomodoroLeft, sliceLeft]);
+
+  useEffect(() => {
+    if (appState === 'running') {
+      if (pomodoroLeft <= 0 && !handledPomoRef.current) {
+        handledPomoRef.current = true;
+        logAccumulatedTime(0, currentTask?.title, true);
+        if (settings.isSoundEnabled) playNotificationSound('break');
+        setAppState('break');
+        setPomodoroLeft(settings.breakMinutes * 60);
+        setCurrentTask(null);
+      } else if (sliceLeft <= 0 && !handledSliceRef.current) {
+        handledSliceRef.current = true;
+        logAccumulatedTime(pomodoroLeft, currentTask?.title, false);
+        if (settings.isSoundEnabled) playNotificationSound('slice');
+        drawRandomTask();
+        setSliceLeft(settings.timeSliceMinutes * 60);
+      }
+    } else if (appState === 'break') {
+      if (pomodoroLeft <= 0 && !handledPomoRef.current) {
+        handledPomoRef.current = true;
+        if (settings.isSoundEnabled) playNotificationSound('work');
+        resetToIdle();
+      }
+    }
+  }, [pomodoroLeft, sliceLeft, appState, settings, currentTask, tasks]);
 
   const drawRandomTask = () => {
     if (tasks.length === 0) {

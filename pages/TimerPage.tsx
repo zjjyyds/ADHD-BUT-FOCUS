@@ -260,12 +260,12 @@ export default function TimerPage() {
     <div className="flex-1 h-full flex relative overflow-hidden bg-[#fdfbf9]">
       {/* Background Gradient */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-orange-50/40 blur-3xl"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-red-50/40 blur-3xl"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-orange-50/40"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-red-50/40"></div>
       </div>
 
       {/* Left Sidebar Widgets (Time Context) */}
-      <div className="w-[340px] p-6 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-r border-slate-100/50 bg-white/30 backdrop-blur-sm">
+      <div className="w-[340px] p-6 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-r border-slate-100/50 bg-white/30">
         <div className="flex flex-col gap-8 my-auto">
           <TimePerceptionWidget currentTime={currentTime} />
           <TodayDotsWidget currentTime={currentTime} />
@@ -324,7 +324,6 @@ export default function TimerPage() {
               strokeWidth="10" strokeLinecap="round" 
               strokeDasharray={2 * Math.PI * 180} 
               strokeDashoffset={2 * Math.PI * 180 * (1 - progress)} 
-              className="transition-all duration-1000 linear" 
             />
           </svg>
           
@@ -384,7 +383,7 @@ export default function TimerPage() {
       </div>
 
       {/* Right Sidebar Widgets */}
-      <div className="w-[320px] p-8 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-l border-slate-100/50 bg-white/30 backdrop-blur-sm">
+      <div className="w-[320px] p-8 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-l border-slate-100/50 bg-white/30">
         <div className="flex flex-col gap-6 my-auto">
           {/* Today's Streak */}
         <div className="bg-white/80  rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
@@ -401,7 +400,7 @@ export default function TimerPage() {
               return (
                 <div 
                   key={idx}
-                  className={`flex-1 rounded-t-lg transition-all duration-1000 ${isToday ? 'bg-[#c24127] shadow-[0_4px_15px_rgba(194,65,39,0.3)]' : 'bg-[#eecdc6]'}`}
+                  className={`flex-1 rounded-t-lg  ${isToday ? 'bg-[#c24127] shadow-[0_4px_15px_rgba(194,65,39,0.3)]' : 'bg-[#eecdc6]'}`}
                   style={{ height: `${heightPct}%` }}
                 ></div>
               );
@@ -419,7 +418,7 @@ export default function TimerPage() {
         {/* Next Milestone */}
         <div className="bg-white/80  rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 flex items-center gap-4 relative overflow-hidden shrink-0">
           <div className="absolute bottom-0 left-0 h-1.5 bg-[#c24127]/10 w-full">
-            <div className="h-full bg-[#c24127] transition-all duration-1000 rounded-r-full" style={{ width: `${stats.progressToMilestone}%` }}></div>
+            <div className="h-full bg-[#c24127]  rounded-r-full" style={{ width: `${stats.progressToMilestone}%` }}></div>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-[#fcd38f] flex items-center justify-center text-[#c24127] shrink-0">
             <Award size={24} strokeWidth={2} />
@@ -463,7 +462,7 @@ export default function TimerPage() {
           {/* Progress Bar */}
           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4 flex">
             <div 
-              className="h-full bg-indigo-500 transition-all duration-1000" 
+              className="h-full bg-indigo-500 " 
               style={{ width: `${Math.min(100, (todayLearnMins / (8 * 60)) * 100)}%` }}
             ></div>
           </div>
@@ -477,11 +476,11 @@ export default function TimerPage() {
               </div>
               <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
                 <div 
-                  className="h-full bg-indigo-400 transition-all duration-1000" 
+                  className="h-full bg-indigo-400 " 
                   style={{ width: `${(todayLearnMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
                 ></div>
                 <div 
-                  className="h-full bg-emerald-400 transition-all duration-1000" 
+                  className="h-full bg-emerald-400 " 
                   style={{ width: `${(todayWorkMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
                 ></div>
               </div>

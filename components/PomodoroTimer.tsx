@@ -178,7 +178,7 @@ const PomodoroTimer: React.FC<PomodoroTimerProps> = ({ onTimerComplete }) => {
              strokeWidth="8" strokeLinecap="round" 
              strokeDasharray={2 * Math.PI * 102} 
              strokeDashoffset={2 * Math.PI * 102 * (1 - progress)} 
-             className="transition-all duration-1000 linear drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]" 
+              
            />
          </svg>
          {isEditingTime ? (
