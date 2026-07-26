@@ -48,7 +48,7 @@ export default function Layout() {
 
   // Timer State
 
-  const [taskName, setTaskName] = useState('Writing Project Proposal');
+  const [taskName, setTaskName] = useState('不要把梦想埋没');
   const [category, setCategory] = useState<'learn' | 'work' | 'other'>('work');
   const [inputMinutes, setInputMinutes] = useState<number>(25);
   const [timeLeft, setTimeLeft] = useState(25 * 60);

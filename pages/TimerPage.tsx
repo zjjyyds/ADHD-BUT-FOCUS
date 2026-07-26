@@ -63,22 +63,6 @@ const TimeWheelPicker: React.FC<{
   );
 };
 
-export const MILESTONES = [
-  { h: 1, name: "初露锋芒 (1h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 5, name: "渐入佳境 (5h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 10, name: "十时之约 (10h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 25, name: "小有所成 (25h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 50, name: "坚韧不拔 (50h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 100, name: "百炼成钢 (100h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 200, name: "心如止水 (200h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 300, name: "虚室生白 (300h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 500, name: "大道至简 (500h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 1000, name: "时光领主 (1000h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 2000, name: "破壁人 (2000h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 5000, name: "超凡入圣 (5000h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" },
-  { h: 10000, name: "永恒真理 (10000h)", iconColor: "text-[#c24127]", iconBg: "bg-[#c24127]/10", barBg: "bg-[#c24127]/10", bar: "bg-[#c24127]" }
-];
-
 export default function TimerPage() {
   const { 
     handleTimerComplete, dailyData,
@@ -95,7 +79,6 @@ export default function TimerPage() {
   } = useOutletContext<AppContextType>();
   
   const [isEditingTime, setIsEditingTime] = useState(false);
-  const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -110,9 +93,7 @@ export default function TimerPage() {
     last5Days: [0, 0, 0, 0, 0],
     todayFormatted: '0m',
     trend: 0,
-    nextMilestone: MILESTONES[0],
-    progressToMilestone: 0,
-    totalHours: 0
+    thisYearTotalHours: 0
   });
 
   const progress = totalTime > 0 ? 1 - timeLeft / totalTime : 0;
@@ -138,9 +119,14 @@ export default function TimerPage() {
   midnight.setHours(23, 59, 59, 999);
   const minutesUntilMidnight = Math.floor((midnight.getTime() - currentTime.getTime()) / 60000);
   
-  const learningGoalMins = 8 * 60;
+  const learningGoalMins = (globalSettings.dailyLearnGoalHours || 8) * 60;
   const remainingLearningMins = Math.max(0, learningGoalMins - todayLearnMins);
-  const diffMins = minutesUntilMidnight - remainingLearningMins;
+  
+  const workingGoalMins = (globalSettings.dailyWorkGoalHours || 4) * 60;
+  const remainingWorkingMins = Math.max(0, workingGoalMins - todayWorkMins);
+  
+  const totalRemainingMins = remainingLearningMins + remainingWorkingMins;
+  const totalDiffMins = minutesUntilMidnight - totalRemainingMins;
 
 
 
@@ -191,31 +177,28 @@ export default function TimerPage() {
         trend = 100;
       }
 
-      let totalMins = 0;
+      let thisYearTotalMins = 0;
+      const currentYear = today.getFullYear().toString();
       for (const data of allData) {
-        totalMins += data.focusMinutes || 0;
+        if (data.date.startsWith(currentYear) && data.schedule) {
+          const learnMins = data.schedule.filter(s => s.category === 'learn').reduce((acc, curr) => {
+            const [h1, m1] = curr.startTime.split(':').map(Number);
+            const [h2, m2] = curr.endTime.split(':').map(Number);
+            let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+            if (diff < 0) diff += 24 * 60;
+            return acc + diff;
+          }, 0);
+          thisYearTotalMins += learnMins;
+        }
       }
-      const totalHrs = totalMins / 60;
-
-      const nextMIndex = MILESTONES.findIndex(m => m.h > totalHrs);
-      const nextMilestone = nextMIndex !== -1 ? MILESTONES[nextMIndex] : MILESTONES[MILESTONES.length - 1];
-      const prevM = nextMIndex > 0 ? MILESTONES[nextMIndex - 1].h : 0;
-      
-      let progressPct = 0;
-      if (nextMilestone.h > prevM) {
-        progressPct = ((totalHrs - prevM) / (nextMilestone.h - prevM)) * 100;
-      } else {
-        progressPct = 100;
-      }
+      const thisYearTotalHours = thisYearTotalMins / 60;
 
       if (isMounted) {
         setStats({
           last5Days: last5,
           todayFormatted,
           trend,
-          nextMilestone,
-          progressToMilestone: Math.min(100, Math.max(0, progressPct)),
-          totalHours: totalHrs
+          thisYearTotalHours
         });
       }
     };
@@ -283,7 +266,7 @@ export default function TimerPage() {
 
       {/* Left Sidebar Widgets (Time Context) */}
       <div className="w-[340px] p-6 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-r border-slate-100/50 bg-white/30">
-        <div className="flex flex-col gap-8 my-auto">
+        <div className="flex flex-col justify-between h-[660px] my-auto">
           <FlippableTimeWidget currentTime={currentTime} eventName={globalSettings.countdownEvent} targetDate={globalSettings.countdownDate} />
           <TodayDotsWidget currentTime={currentTime} />
           <WeekDotsWidget currentTime={currentTime} />
@@ -435,16 +418,16 @@ export default function TimerPage() {
       </div>
 
       {/* Right Sidebar Widgets */}
-      <div className="w-[320px] p-8 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-l border-slate-100/50 bg-white/30">
-        <div className="flex flex-col gap-6 my-auto">
+      <div className="w-[320px] p-6 flex flex-col relative z-10 overflow-y-auto no-scrollbar border-l border-slate-100/50 bg-white/30">
+        <div className="flex flex-col justify-between h-[660px] my-auto">
           {/* Today's Streak */}
-        <div className="bg-white/80  rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
-          <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-6">
+        <div className="bg-white/80  rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
+          <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-4">
             今日专注趋势
           </div>
           
           {/* Bar Chart */}
-          <div className="flex items-end gap-2 h-24 mb-6">
+          <div className="flex items-end gap-2 h-20 mb-4">
             {stats.last5Days.map((mins, idx) => {
               const maxMins = Math.max(...stats.last5Days, 60); // min scale is 60 mins
               const heightPct = Math.max(10, (mins / maxMins) * 100);
@@ -467,102 +450,84 @@ export default function TimerPage() {
           </div>
         </div>
 
-        {/* Next Milestone */}
+        {/* This Year Learning Goal Widget */}
         <div 
-          className="bg-white/80 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 flex items-center gap-4 relative overflow-hidden shrink-0 cursor-pointer hover:bg-white transition-colors group"
-          onClick={() => setIsMilestoneModalOpen(true)}
+          className="bg-white/80 rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 flex flex-col gap-2 relative overflow-hidden shrink-0 transition-colors"
         >
-          <div className={`absolute bottom-0 left-0 h-1.5 w-full ${stats.nextMilestone.barBg}`}>
-            <div className={`h-full rounded-r-full transition-all duration-1000 ${stats.nextMilestone.bar}`} style={{ width: `${stats.progressToMilestone}%` }}></div>
-          </div>
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${stats.nextMilestone.iconBg} ${stats.nextMilestone.iconColor}`}>
-            <Award size={24} strokeWidth={2} />
-          </div>
-          <div>
-            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-1">
-              下一个里程碑
-            </div>
-            <div className={`font-bold ${stats.nextMilestone.color}`}>
-              {stats.nextMilestone.name}
-            </div>
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-indigo-50 text-indigo-500">
+               <Award size={24} strokeWidth={2} />
+             </div>
+             <div>
+               <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-1">今年累计学习</div>
+               <div className="font-bold text-slate-800 text-xl">{stats.thisYearTotalHours.toFixed(1)} <span className="text-sm font-normal text-slate-500">小时</span></div>
+             </div>
           </div>
         </div>
 
         {/* Learning Goal Widget */}
-        <div className="bg-white/80  rounded-3xl p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white/80  rounded-3xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.02)] border border-white/50 shrink-0">
+          <div className="flex justify-between items-center mb-4">
             <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase">
-              今日学习目标
+              今日目标
             </div>
-            <div className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
-              8h
+            <div className="flex gap-2">
+              <div className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
+                学 {globalSettings.dailyLearnGoalHours || 8}h
+              </div>
+              <div className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md">
+                工 {globalSettings.dailyWorkGoalHours || 4}h
+              </div>
             </div>
           </div>
           
-          <div className="flex items-end justify-between mb-4">
+          <div className="flex flex-col gap-4 mb-5">
             <div>
-              <div className="text-2xl font-medium text-slate-800">
-                {formatDurationText(todayLearnMins)}
+              <div className="flex justify-between items-end mb-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-medium text-slate-800">{formatDurationText(todayLearnMins)}</span>
+                  <span className="text-[10px] text-slate-400">已学习</span>
+                </div>
+                <div className="text-[10px] font-bold text-indigo-500">{Math.floor((todayLearnMins / Math.max(1, learningGoalMins)) * 100)}%</div>
               </div>
-              <div className="text-xs text-slate-400 mt-1">已学习</div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-medium text-slate-600">
-                {formatDurationText(todayWorkMins)}
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (todayLearnMins / Math.max(1, learningGoalMins)) * 100)}%` }}></div>
               </div>
-              <div className="text-xs text-slate-400 mt-1">工作</div>
             </div>
-          </div>
 
-          {/* Progress Bar */}
-          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-4 flex">
-            <div 
-              className="h-full bg-indigo-500 " 
-              style={{ width: `${Math.min(100, (todayLearnMins / (8 * 60)) * 100)}%` }}
-            ></div>
-          </div>
-          
-          {/* Ratio Bar */}
-          {todayLearnMins + todayWorkMins > 0 ? (
             <div>
-              <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex justify-between">
-                <span>学习 {(todayLearnMins / (todayLearnMins + todayWorkMins) * 100).toFixed(0)}%</span>
-                <span>工作 {(todayWorkMins / (todayLearnMins + todayWorkMins) * 100).toFixed(0)}%</span>
+              <div className="flex justify-between items-end mb-1.5">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-medium text-slate-800">{formatDurationText(todayWorkMins)}</span>
+                  <span className="text-[10px] text-slate-400">已工作</span>
+                </div>
+                <div className="text-[10px] font-bold text-emerald-500">{Math.floor((todayWorkMins / Math.max(1, workingGoalMins)) * 100)}%</div>
               </div>
-              <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                <div 
-                  className="h-full bg-indigo-400 " 
-                  style={{ width: `${(todayLearnMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
-                ></div>
-                <div 
-                  className="h-full bg-emerald-400 " 
-                  style={{ width: `${(todayWorkMins / (todayLearnMins + todayWorkMins)) * 100}%` }}
-                ></div>
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${Math.min(100, (todayWorkMins / Math.max(1, workingGoalMins)) * 100)}%` }}></div>
               </div>
             </div>
-          ) : (
-            <div className="text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center mt-2">
-              暂无学习或工作记录
-            </div>
-          )}
+          </div>
 
           {/* Goal Analysis */}
-          <div className="mt-5 pt-4 border-t border-slate-100/50">
-            {remainingLearningMins === 0 ? (
+          <div className="mt-4 pt-4 border-t border-slate-100/50">
+            {totalRemainingMins === 0 ? (
               <div className="text-xs font-medium text-emerald-600 flex items-center justify-center gap-1.5">
-                <CheckCircle2 size={14} /> 今日学习目标已达成！
+                <CheckCircle2 size={14} /> 今日所有目标已达成！
               </div>
-            ) : diffMins >= 0 ? (
+            ) : totalDiffMins >= 0 ? (
               <div className="text-xs text-slate-500 leading-relaxed">
-                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>，
-                需学习 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>。<br/>
-                宽裕 <span className="font-medium text-emerald-600">{formatDurationText(diffMins)}</span>，时间充足。
+                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>。<br/>
+                学习缺口 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>，
+                工作缺口 <span className="font-medium text-emerald-600">{formatDurationText(remainingWorkingMins)}</span>。<br/>
+                剩余宽裕时间 <span className="font-medium text-emerald-600">{formatDurationText(totalDiffMins)}</span>，时间充足。
               </div>
             ) : (
               <div className="text-xs text-slate-500 leading-relaxed">
-                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>，
-                需学习 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>。<br/>
-                缺口 <span className="font-medium text-[#c24127]">{formatDurationText(-diffMins)}</span>，需抓紧时间。
+                距0点还有 <span className="font-medium text-slate-700">{formatDurationText(minutesUntilMidnight)}</span>。<br/>
+                学习缺口 <span className="font-medium text-indigo-600">{formatDurationText(remainingLearningMins)}</span>，
+                工作缺口 <span className="font-medium text-emerald-600">{formatDurationText(remainingWorkingMins)}</span>。<br/>
+                总计超时缺口 <span className="font-medium text-[#c24127]">{formatDurationText(-totalDiffMins)}</span>，需抓紧时间。
               </div>
             )}
           </div>
@@ -570,62 +535,7 @@ export default function TimerPage() {
         </div>
       </div>
 
-      {/* Milestone Modal */}
-      {isMilestoneModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsMilestoneModalOpen(false)} />
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col relative z-10 overflow-hidden">
-            <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white/80 backdrop-blur-md">
-              <h3 className="text-xl font-bold text-slate-800">成就记录</h3>
-              <button onClick={() => setIsMilestoneModalOpen(false)} className="p-2 bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-4 bg-slate-50/50">
-              <div className="text-center mb-4">
-                <div className="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-1">累计专注时间</div>
-                <div className="text-4xl font-bold text-slate-800 tabular-nums">
-                  {stats.totalHours.toFixed(1)} <span className="text-xl text-slate-400 font-medium">小时</span>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                {MILESTONES.map((m, i) => {
-                  const isAchieved = stats.totalHours >= m.h;
-                  const isNext = !isAchieved && (i === 0 || stats.totalHours >= MILESTONES[i-1].h);
-                  const progress = isAchieved ? 100 : (i === 0 ? (stats.totalHours / m.h) * 100 : (isNext ? ((stats.totalHours - MILESTONES[i-1].h) / (m.h - MILESTONES[i-1].h)) * 100 : 0));
-                  
-                  return (
-                    <div key={m.h} className={`p-4 rounded-2xl border ${isAchieved ? 'bg-white border-white shadow-sm' : isNext ? 'bg-white border-indigo-100 shadow-md shadow-indigo-500/5' : 'bg-slate-50 border-transparent opacity-60'} transition-all relative overflow-hidden`}>
-                      {isNext && (
-                        <div className={`absolute bottom-0 left-0 h-1.5 w-full ${m.barBg}`}>
-                          <div className={`h-full rounded-r-full transition-all duration-1000 ${m.bar}`} style={{ width: `${progress}%` }}></div>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isAchieved ? m.iconBg : isNext ? m.iconBg : 'bg-slate-200'} ${isAchieved ? m.iconColor : isNext ? m.iconColor : 'text-slate-400'}`}>
-                          {isAchieved ? <Award size={24} strokeWidth={2} /> : isNext ? <Award size={24} strokeWidth={2} /> : <Lock size={20} strokeWidth={2} />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className={`font-bold text-sm ${isAchieved || isNext ? m.iconColor : 'text-slate-600'}`}>{m.name}</div>
-                            {isAchieved && <CheckCircle2 size={16} className="text-emerald-500" />}
-                          </div>
-                          <div className="text-xs font-semibold text-slate-400">
-                            {isAchieved ? `已达成` : `需达到 ${m.h} 小时`}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

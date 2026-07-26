@@ -15,22 +15,30 @@ export default function DataSettings({ context }: { context: AppContextType }) {
   const [localPresets, setLocalPresets] = useState(globalSettings.presetTimes?.join(', ') || '5, 15, 25, 45, 60');
   const [localCountdownEvent, setLocalCountdownEvent] = useState(globalSettings.countdownEvent || '');
   const [localCountdownDate, setLocalCountdownDate] = useState(globalSettings.countdownDate || '');
+  const [localLearnGoalHours, setLocalLearnGoalHours] = useState((globalSettings.dailyLearnGoalHours || 8).toString());
+  const [localWorkGoalHours, setLocalWorkGoalHours] = useState((globalSettings.dailyWorkGoalHours || 4).toString());
 
   useEffect(() => {
     setLocalGoal(globalSettings.learningGoal || '');
     setLocalPresets(globalSettings.presetTimes?.join(', ') || '5, 15, 25, 45, 60');
     setLocalCountdownEvent(globalSettings.countdownEvent || '');
     setLocalCountdownDate(globalSettings.countdownDate || '');
+    setLocalLearnGoalHours((globalSettings.dailyLearnGoalHours || 8).toString());
+    setLocalWorkGoalHours((globalSettings.dailyWorkGoalHours || 4).toString());
   }, [globalSettings]);
 
   const saveSettings = () => {
     const presets = localPresets.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0);
+    const learnHours = parseFloat(localLearnGoalHours);
+    const workHours = parseFloat(localWorkGoalHours);
     setGlobalSettings({
       ...globalSettings,
       learningGoal: localGoal,
       presetTimes: presets.length > 0 ? presets : [5, 15, 25, 45, 60],
       countdownEvent: localCountdownEvent,
-      countdownDate: localCountdownDate
+      countdownDate: localCountdownDate,
+      dailyLearnGoalHours: !isNaN(learnHours) && learnHours > 0 ? learnHours : 8,
+      dailyWorkGoalHours: !isNaN(workHours) && workHours > 0 ? workHours : 4
     });
     alert('设置已保存');
   };
@@ -66,6 +74,32 @@ export default function DataSettings({ context }: { context: AppContextType }) {
           偏好设置
         </h4>
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">每日学习目标 (小时)</label>
+              <input
+                type="number"
+                min="0.5"
+                step="0.5"
+                value={localLearnGoalHours}
+                onChange={e => setLocalLearnGoalHours(e.target.value)}
+                placeholder="例如：8"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c24127]/20 focus:border-[#c24127] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">每日工作目标 (小时)</label>
+              <input
+                type="number"
+                min="0.5"
+                step="0.5"
+                value={localWorkGoalHours}
+                onChange={e => setLocalWorkGoalHours(e.target.value)}
+                placeholder="例如：4"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c24127]/20 focus:border-[#c24127] transition-all"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">当前学习目标</label>
             <input

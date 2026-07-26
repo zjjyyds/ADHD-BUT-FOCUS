@@ -45,12 +45,14 @@ service cloud.firestore {
     
     function isValidGlobalSettings(data) {
       // Allow optional fields in GlobalSettings
-      let allowed = ['learningGoal', 'presetTimes', 'countdownEvent', 'countdownDate'];
+      let allowed = ['learningGoal', 'presetTimes', 'countdownEvent', 'countdownDate', 'dailyLearnGoalHours', 'dailyWorkGoalHours'];
       return request.resource.data.keys().hasAny(allowed) && request.resource.data.keys().hasOnly(allowed) &&
              ( !('learningGoal' in data) || (data.learningGoal is string && data.learningGoal.size() <= 500) ) &&
              ( !('presetTimes' in data) || (data.presetTimes is list && data.presetTimes.size() <= 20) ) &&
              ( !('countdownEvent' in data) || (data.countdownEvent is string && data.countdownEvent.size() <= 50) ) &&
-             ( !('countdownDate' in data) || (data.countdownDate is string && data.countdownDate.size() <= 20) );
+             ( !('countdownDate' in data) || (data.countdownDate is string && data.countdownDate.size() <= 20) ) &&
+             ( !('dailyLearnGoalHours' in data) || (data.dailyLearnGoalHours is number && data.dailyLearnGoalHours >= 0 && data.dailyLearnGoalHours <= 24) ) &&
+             ( !('dailyWorkGoalHours' in data) || (data.dailyWorkGoalHours is number && data.dailyWorkGoalHours >= 0 && data.dailyWorkGoalHours <= 24) );
     }
 
     // ===============================================================

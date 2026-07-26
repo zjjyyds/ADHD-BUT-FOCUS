@@ -16,7 +16,9 @@ export const defaultGlobalSettings: GlobalSettings = {
   learningGoal: '',
   presetTimes: [5, 15, 25, 45, 60],
   countdownEvent: '27考研',
-  countdownDate: '2026-12-19'
+  countdownDate: '2026-12-19',
+  dailyLearnGoalHours: 8,
+  dailyWorkGoalHours: 4
 };
 
 export const saveGlobalSettings = async (settings: GlobalSettings): Promise<void> => {

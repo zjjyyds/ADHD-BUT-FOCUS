@@ -23,6 +23,8 @@ export interface GlobalSettings {
   presetTimes: number[];
   countdownEvent?: string;
   countdownDate?: string;
+  dailyLearnGoalHours?: number;
+  dailyWorkGoalHours?: number;
 }
 
 export interface AppSettings {
