@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { motion } from 'motion/react';
 
 export const TodayDotsWidget: React.FC<{ currentTime: Date }> = memo(({ currentTime }) => {
   const totalHours = 24;
@@ -60,7 +61,7 @@ export const WeekDotsWidget: React.FC<{ currentTime: Date }> = memo(({ currentTi
   );
 });
 
-export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ currentTime }) => {
+export const TimePerceptionWidget: React.FC<{ currentTime: Date, className?: string }> = memo(({ currentTime, className = '' }) => {
   const currentHour = currentTime.getHours() + currentTime.getMinutes() / 60;
   const dayProgress = currentHour / 24;
   
@@ -86,13 +87,13 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
   };
 
   return (
-    <div className="bg-white/80  rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0">
-      <div className="flex justify-between items-center mb-5">
+    <div className={`bg-white/80 rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0 flex flex-col ${className}`}>
+      <div className="flex justify-between items-center mb-5 shrink-0">
         <div className="font-bold text-slate-800 text-base">时间感知</div>
         <div className="text-[10px] font-bold text-[#c24127] bg-[#c24127]/10 px-2 py-1 rounded-full uppercase tracking-wider">概览</div>
       </div>
       
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 flex-1">
         <div className="relative shrink-0" style={{ width: svgSize, height: svgSize }}>
           <svg className="w-full h-full transform -rotate-90" viewBox={`0 0 ${svgSize} ${svgSize}`}>
             {/* Tracks */}
@@ -117,7 +118,7 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
           </div>
         </div>
         
-        <div className="w-full flex flex-col gap-4">
+        <div className="w-full flex flex-col justify-center gap-4 h-full">
           <div>
             <div className="flex justify-between items-end mb-1">
               <div className="font-bold text-slate-800 text-sm">{dayText}</div>
@@ -147,6 +148,76 @@ export const TimePerceptionWidget: React.FC<{ currentTime: Date }> = memo(({ cur
           </div>
         </div>
       </div>
+    </div>
+  );
+});
+
+export const CountdownWidget: React.FC<{ eventName?: string, targetDate?: string, className?: string }> = memo(({ eventName, targetDate, className = '' }) => {
+  if (!eventName || !targetDate) return null;
+  const target = new Date(targetDate);
+  const now = new Date();
+  target.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diff = target.getTime() - now.getTime();
+  const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  
+  if (daysLeft < 0) return null;
+
+  return (
+    <div className={`bg-white/80 rounded-[1.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-white shrink-0 relative overflow-hidden flex flex-col ${className}`}>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#c24127]/5 rounded-bl-[100px] -z-10"></div>
+      <div className="absolute bottom-0 left-0 w-40 h-40 bg-[#c24127]/5 rounded-tr-[100px] -z-10"></div>
+      <div className="flex justify-between items-center mb-5 shrink-0">
+        <div className="font-bold text-slate-800 text-base">倒数日</div>
+        <div className="text-[10px] font-bold text-[#c24127] bg-[#c24127]/10 px-2 py-1 rounded-full uppercase tracking-wider">目标</div>
+      </div>
+      <div className="flex flex-col flex-1 items-center justify-center relative">
+         <div className="text-6xl font-bold text-[#c24127] tabular-nums tracking-tighter mb-1 drop-shadow-sm">{daysLeft}</div>
+         <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Days Left</div>
+         <div className="flex items-center justify-between w-full px-4 py-3 bg-white/60 rounded-2xl border border-white/50 backdrop-blur-sm">
+            <div className="font-semibold text-slate-700 text-sm truncate pr-4">{eventName}</div>
+            <div className="text-xs font-bold text-slate-400 shrink-0">{targetDate}</div>
+         </div>
+      </div>
+    </div>
+  );
+});
+
+export const FlippableTimeWidget: React.FC<{ currentTime: Date, eventName?: string, targetDate?: string }> = memo(({ currentTime, eventName, targetDate }) => {
+  const [isFlipped, setIsFlipped] = React.useState(false);
+
+  let showCountdown = false;
+  if (eventName && targetDate) {
+    const target = new Date(targetDate);
+    const now = new Date();
+    target.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diff = target.getTime() - now.getTime();
+    const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (daysLeft >= 0) showCountdown = true;
+  }
+
+  if (!showCountdown) {
+    return <TimePerceptionWidget currentTime={currentTime} />;
+  }
+
+  return (
+    <div className="relative w-full cursor-pointer shrink-0" onClick={() => setIsFlipped(!isFlipped)} style={{ perspective: 1000 }}>
+      <motion.div
+        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        transition={{ duration: 0.6, type: 'tween', ease: 'easeInOut' }}
+        style={{ transformStyle: 'preserve-3d' }}
+        className="w-full relative"
+      >
+        {/* Render TimePerception always relative so it gives the container height */}
+        <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }} className="relative w-full">
+           <TimePerceptionWidget currentTime={currentTime} className="h-full w-full" />
+        </div>
+        {/* Render Countdown absolute on top */}
+        <div style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg)' }} className="absolute inset-0 w-full h-full">
+           <CountdownWidget eventName={eventName} targetDate={targetDate} className="h-full w-full" />
+        </div>
+      </motion.div>
     </div>
   );
 });

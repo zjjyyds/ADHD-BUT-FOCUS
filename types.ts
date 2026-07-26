@@ -21,6 +21,8 @@ export interface RandomTask {
 export interface GlobalSettings {
   learningGoal: string;
   presetTimes: number[];
+  countdownEvent?: string;
+  countdownDate?: string;
 }
 
 export interface AppSettings {

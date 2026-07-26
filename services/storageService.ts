@@ -14,7 +14,9 @@ export const createEmptyDailyData = (date: string): DailyData => ({
 
 export const defaultGlobalSettings: GlobalSettings = {
   learningGoal: '',
-  presetTimes: [5, 15, 25, 45, 60]
+  presetTimes: [5, 15, 25, 45, 60],
+  countdownEvent: '27考研',
+  countdownDate: '2026-12-19'
 };
 
 export const saveGlobalSettings = async (settings: GlobalSettings): Promise<void> => {

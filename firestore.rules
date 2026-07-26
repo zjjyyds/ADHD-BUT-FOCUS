@@ -5,26 +5,26 @@ service cloud.firestore {
     // ===============================================================
     // Helper Functions
     // ===============================================================
-    function isAuthenticated() {
-       return request.auth != null;
+    function isAuthenticated() { 
+      return request.auth != null;
     }
     
-    function isOwner(userId) {
-       return isAuthenticated() && request.auth.uid == userId;
+    function isOwner(userId) { 
+      return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function uidUnchanged() {
-       return !('uid' in request.resource.data) ||
-         request.resource.data.uid == request.auth.uid;
+    function uidUnchanged() { 
+      return !('uid' in request.resource.data) || 
+        request.resource.data.uid == request.auth.uid;
     }
     
-    function uidNotModified() {
-       return !('uid' in request.resource.data) ||
-         request.resource.data.uid == resource.data.uid;
+    function uidNotModified() { 
+      return !('uid' in request.resource.data) || 
+        request.resource.data.uid == resource.data.uid;
     }
     
-    function hasRequiredFields(fields) {
-       return request.resource.data.keys().hasAll(fields);
+    function hasRequiredFields(fields) { 
+      return request.resource.data.keys().hasAll(fields);
     }
     
     function hasOnlyAllowedFields(fields) {
@@ -42,6 +42,16 @@ service cloud.firestore {
              data.todos is list && data.todos.size() <= 100 &&
              data.focusMinutes is number && data.focusMinutes >= 0;
     }
+    
+    function isValidGlobalSettings(data) {
+      // Allow optional fields in GlobalSettings
+      let allowed = ['learningGoal', 'presetTimes', 'countdownEvent', 'countdownDate'];
+      return request.resource.data.keys().hasAny(allowed) && request.resource.data.keys().hasOnly(allowed) &&
+             ( !('learningGoal' in data) || (data.learningGoal is string && data.learningGoal.size() <= 500) ) &&
+             ( !('presetTimes' in data) || (data.presetTimes is list && data.presetTimes.size() <= 20) ) &&
+             ( !('countdownEvent' in data) || (data.countdownEvent is string && data.countdownEvent.size() <= 50) ) &&
+             ( !('countdownDate' in data) || (data.countdownDate is string && data.countdownDate.size() <= 20) );
+    }
 
     // ===============================================================
     // Rules
@@ -54,6 +64,13 @@ service cloud.firestore {
       allow update: if isOwner(userId) && 
                     isValidDailyData(request.resource.data) && 
                     uidNotModified();
+      allow delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/settings/global {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && 
+                            isValidGlobalSettings(request.resource.data);
       allow delete: if isOwner(userId);
     }
   }

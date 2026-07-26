@@ -13,10 +13,14 @@ export default function DataSettings({ context }: { context: AppContextType }) {
   
   const [localGoal, setLocalGoal] = useState(globalSettings.learningGoal || '');
   const [localPresets, setLocalPresets] = useState(globalSettings.presetTimes?.join(', ') || '5, 15, 25, 45, 60');
+  const [localCountdownEvent, setLocalCountdownEvent] = useState(globalSettings.countdownEvent || '');
+  const [localCountdownDate, setLocalCountdownDate] = useState(globalSettings.countdownDate || '');
 
   useEffect(() => {
     setLocalGoal(globalSettings.learningGoal || '');
     setLocalPresets(globalSettings.presetTimes?.join(', ') || '5, 15, 25, 45, 60');
+    setLocalCountdownEvent(globalSettings.countdownEvent || '');
+    setLocalCountdownDate(globalSettings.countdownDate || '');
   }, [globalSettings]);
 
   const saveSettings = () => {
@@ -24,7 +28,9 @@ export default function DataSettings({ context }: { context: AppContextType }) {
     setGlobalSettings({
       ...globalSettings,
       learningGoal: localGoal,
-      presetTimes: presets.length > 0 ? presets : [5, 15, 25, 45, 60]
+      presetTimes: presets.length > 0 ? presets : [5, 15, 25, 45, 60],
+      countdownEvent: localCountdownEvent,
+      countdownDate: localCountdownDate
     });
     alert('设置已保存');
   };
@@ -80,6 +86,27 @@ export default function DataSettings({ context }: { context: AppContextType }) {
               className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c24127]/20 focus:border-[#c24127] transition-all"
             />
             <p className="text-xs text-slate-400 mt-2">使用英文逗号分隔，将显示在专注时钟页面方便快速选择。</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">倒数日事件</label>
+              <input
+                type="text"
+                value={localCountdownEvent}
+                onChange={e => setLocalCountdownEvent(e.target.value)}
+                placeholder="例如：27考研"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c24127]/20 focus:border-[#c24127] transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">目标日期</label>
+              <input
+                type="date"
+                value={localCountdownDate}
+                onChange={e => setLocalCountdownDate(e.target.value)}
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#c24127]/20 focus:border-[#c24127] transition-all"
+              />
+            </div>
           </div>
           <div className="pt-2">
             <button

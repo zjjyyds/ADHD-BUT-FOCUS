@@ -1,0 +1,15 @@
+export const MILESTONES = [
+  { h: 1, name: '初露锋芒 (1h)', iconColor: 'text-amber-500', iconBg: 'bg-amber-100', barBg: 'bg-amber-500/10', bar: 'bg-amber-500' },
+  { h: 5, name: '渐入佳境 (5h)', iconColor: 'text-orange-500', iconBg: 'bg-orange-100', barBg: 'bg-orange-500/10', bar: 'bg-orange-500' },
+  { h: 10, name: '十时之约 (10h)', iconColor: 'text-green-500', iconBg: 'bg-green-100', barBg: 'bg-green-500/10', bar: 'bg-green-500' },
+  { h: 25, name: '小有所成 (25h)', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-100', barBg: 'bg-emerald-500/10', bar: 'bg-emerald-500' },
+  { h: 50, name: '坚韧不拔 (50h)', iconColor: 'text-teal-500', iconBg: 'bg-teal-100', barBg: 'bg-teal-500/10', bar: 'bg-teal-500' },
+  { h: 100, name: '百炼成钢 (100h)', iconColor: 'text-cyan-500', iconBg: 'bg-cyan-100', barBg: 'bg-cyan-500/10', bar: 'bg-cyan-500' },
+  { h: 200, name: '心如止水 (200h)', iconColor: 'text-blue-500', iconBg: 'bg-blue-100', barBg: 'bg-blue-500/10', bar: 'bg-blue-500' },
+  { h: 300, name: '虚室生白 (300h)', iconColor: 'text-indigo-500', iconBg: 'bg-indigo-100', barBg: 'bg-indigo-500/10', bar: 'bg-indigo-500' },
+  { h: 500, name: '大道至简 (500h)', iconColor: 'text-violet-500', iconBg: 'bg-violet-100', barBg: 'bg-violet-500/10', bar: 'bg-violet-500' },
+  { h: 1000, name: '时光领主 (1000h)', iconColor: 'text-purple-500', iconBg: 'bg-purple-100', barBg: 'bg-purple-500/10', bar: 'bg-purple-500' },
+  { h: 2000, name: '破壁人 (2000h)', iconColor: 'text-rose-500', iconBg: 'bg-rose-100', barBg: 'bg-rose-500/10', bar: 'bg-rose-500' },
+  { h: 5000, name: '超凡入圣 (5000h)', iconColor: 'text-red-500', iconBg: 'bg-red-100', barBg: 'bg-red-500/10', bar: 'bg-red-500' },
+  { h: 10000, name: '永恒真理 (10000h)', iconColor: 'text-slate-700', iconBg: 'bg-slate-200', barBg: 'bg-slate-700/10', bar: 'bg-slate-700' },
+];
