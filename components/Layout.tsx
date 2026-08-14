@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Clock, CheckSquare, BarChart2, Settings, LogIn, LogOut, FileText, Shuffle } from 'lucide-react';
+import { Clock, BarChart2, Settings, LogIn, LogOut, FileText, CalendarDays } from 'lucide-react';
 import { DailyData, ScheduleItem, TodoItem, GlobalSettings } from '../types';
 import { loadDailyData, saveDailyData, createEmptyDailyData, loadGlobalSettings, saveGlobalSettings, defaultGlobalSettings } from '../services/storageService';
 import { useAuth } from './AuthProvider';
@@ -14,8 +14,9 @@ export type AppContextType = {
   globalSettings: GlobalSettings;
   setGlobalSettings: React.Dispatch<React.SetStateAction<GlobalSettings>>;
   handleTimerComplete: (title: string, durationMinutes: number, currentCategory?: 'learn' | 'work' | 'other') => void;
+  activeScheduleId: string | null;
+  setActiveScheduleId: React.Dispatch<React.SetStateAction<string | null>>;
 
-  
   // Timer State
   taskName: string;
   setTaskName: React.Dispatch<React.SetStateAction<string>>;
@@ -45,6 +46,7 @@ export default function Layout() {
   const { user, signIn, logOut, loading } = useAuth();
   const [dataLoaded, setDataLoaded] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [activeScheduleId, setActiveScheduleId] = useState<string | null>(null);
 
   // Timer State
 
@@ -102,23 +104,40 @@ export default function Layout() {
     const start = new Date(now.getTime() - durationMinutes * 60000);
     const startStr = `${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')}`;
 
-    const newItem: ScheduleItem = {
-      id: crypto.randomUUID(),
-      title: title || '专注时钟',
-      startTime: startStr,
-      endTime: endStr,
-      type: 'auto',
-      category: currentCategory || 'other'
-    };
-    
     setDailyData(prev => {
-      const newSchedule = [...(prev.schedule || []), newItem].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      let updatedSchedule = [...(prev.schedule || [])];
+      
+      if (activeScheduleId) {
+        // Update existing schedule item
+        updatedSchedule = updatedSchedule.map(item => 
+          item.id === activeScheduleId
+            ? { ...item, endTime: endStr, status: 'completed' }
+            : item
+        );
+      } else {
+        // Create new auto item
+        const newItem: ScheduleItem = {
+          id: crypto.randomUUID(),
+          title: title || '专注时钟',
+          startTime: startStr,
+          endTime: endStr,
+          type: 'auto',
+          category: currentCategory || 'other'
+        };
+        updatedSchedule.push(newItem);
+      }
+      
+      updatedSchedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
+
       return { 
         ...prev, 
-        schedule: newSchedule,
+        schedule: updatedSchedule,
         focusMinutes: (prev.focusMinutes || 0) + durationMinutes
       };
     });
+    
+    // Clear active schedule ID after completion
+    setActiveScheduleId(null);
   };
 
   const endTimeRef = useRef<number | null>(null);
@@ -167,6 +186,7 @@ export default function Layout() {
     dailyData, setDailyData,
     globalSettings, setGlobalSettings,
     handleTimerComplete,
+    activeScheduleId, setActiveScheduleId,
     taskName, setTaskName,
     category, setCategory,
     inputMinutes, setInputMinutes,
@@ -191,10 +211,9 @@ export default function Layout() {
         
         <div className="flex flex-col gap-8 flex-1">
           <NavItem to="/" icon={<Clock size={24} strokeWidth={1.5} />} />
-          <NavItem to="/tasks" icon={<CheckSquare size={24} strokeWidth={1.5} />} />
           <NavItem to="/stats" icon={<BarChart2 size={24} strokeWidth={1.5} />} />
           <NavItem to="/report" icon={<FileText size={24} strokeWidth={1.5} />} />
-          <NavItem to="/scheduler" icon={<Shuffle size={24} strokeWidth={1.5} />} />
+          <NavItem to="/daily-plan" icon={<CalendarDays size={24} strokeWidth={1.5} />} />
         </div>
 
         <div className="mt-auto flex flex-col gap-4 items-center">

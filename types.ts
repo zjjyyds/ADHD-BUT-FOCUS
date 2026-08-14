@@ -3,6 +3,9 @@ export interface ScheduleItem {
   startTime: string; // HH:mm
   endTime: string;   // HH:mm
   title: string;
+  description?: string;
+  status?: 'completed' | 'in-progress' | 'delayed' | 'upcoming';
+  originalStartTime?: string;
   type: 'manual' | 'auto'; // 'auto' for timer generated
   category?: 'learn' | 'work' | 'other';
 }
@@ -18,6 +21,12 @@ export interface RandomTask {
   title: string;
 }
 
+export interface SchedulePreset {
+  id: string;
+  name: string;
+  items: ScheduleItem[];
+}
+
 export interface GlobalSettings {
   learningGoal: string;
   presetTimes: number[];
@@ -25,6 +34,7 @@ export interface GlobalSettings {
   countdownDate?: string;
   dailyLearnGoalHours?: number;
   dailyWorkGoalHours?: number;
+  schedulePresets?: SchedulePreset[];
 }
 
 export interface AppSettings {
