@@ -6,60 +6,80 @@ import { getStoredDates, loadDailyData, getAllDailyData } from '../services/stor
 import { TodayDotsWidget, WeekDotsWidget, FlippableTimeWidget } from '../components/TimeWidgets';
 import { formatDurationText } from '../utils/timeUtils';
 
-const TimeWheelPicker: React.FC<{
+const TimeInputPicker: React.FC<{
   value: number;
   onChange: (v: number) => void;
   onClose: () => void;
 }> = ({ value, onChange, onClose }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const itemHeight = 64; // Increased height for larger font
-  const minutes = Array.from({length: 120}, (_, i) => i + 1);
+  const [inputValue, setInputValue] = useState(value.toString());
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = (value - 1) * itemHeight;
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setInputValue(value.toString());
+  }, [value]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const top = e.currentTarget.scrollTop;
-    const index = Math.round(top / itemHeight);
-    const newVal = minutes[index];
-    if (newVal && newVal !== value) {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    setInputValue(val);
+  };
+
+  const handleBlur = () => {
+    let newVal = parseInt(inputValue, 10);
+    if (isNaN(newVal) || newVal < 1) newVal = 1;
+    if (newVal > 300) newVal = 300;
+    setInputValue(newVal.toString());
+    onChange(newVal);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      let newVal = parseInt(inputValue, 10);
+      if (isNaN(newVal) || newVal < 1) newVal = 1;
+      if (newVal > 300) newVal = 300;
+      setInputValue(newVal.toString());
       onChange(newVal);
+      onClose();
     }
   };
 
+  const adjustValue = (amount: number) => {
+    let current = parseInt(inputValue, 10);
+    if (isNaN(current)) current = value;
+    let newVal = current + amount;
+    if (newVal < 1) newVal = 1;
+    if (newVal > 300) newVal = 300;
+    setInputValue(newVal.toString());
+    onChange(newVal);
+  };
+
   return (
-    <div 
-      className="relative z-20 h-[192px] w-48 overflow-hidden flex flex-col items-center justify-center"
-      style={{ 
-        maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)', 
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)' 
-      }}
-    >
-        <div className="absolute top-1/2 left-0 w-full h-[64px] -translate-y-1/2 border-y-2 border-[#c24127]/20 bg-[#c24127]/5 pointer-events-none rounded-2xl"></div>
-        <div 
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="h-full w-full overflow-y-auto snap-y snap-mandatory no-scrollbar"
-          style={{ paddingTop: '64px', paddingBottom: '64px' }}
-        >
-          {minutes.map(m => (
-            <div 
-              key={m} 
-              className={`h-[64px] flex items-center justify-center snap-center text-[64px] font-light tabular-nums tracking-tight transition-all cursor-pointer ${m === value ? 'text-[#c24127] font-normal' : 'text-slate-300 opacity-50 hover:opacity-100 scale-75'}`}
-              onClick={() => {
-                onChange(m);
-                onClose();
-              }}
-            >
-              {m.toString().padStart(2, '0')}
-            </div>
-          ))}
-        </div>
+    <div className="flex items-center justify-center gap-4 w-64 py-6">
+      <button 
+        onClick={() => adjustValue(-5)}
+        className="w-12 h-12 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full transition-colors font-mono text-lg shadow-sm border border-slate-200"
+      >
+        -5
+      </button>
+      <div className="relative flex items-center justify-center">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          className="w-24 text-center text-5xl font-light text-slate-800 bg-transparent outline-none tabular-nums"
+        />
+        <span className="absolute -right-4 bottom-2 text-lg text-slate-400 font-medium">m</span>
       </div>
+      <button 
+        onClick={() => adjustValue(5)}
+        className="w-12 h-12 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-500 rounded-full transition-colors font-mono text-lg shadow-sm border border-slate-200"
+      >
+        +5
+      </button>
+    </div>
   );
 };
 
@@ -338,7 +358,7 @@ export default function TimerPage() {
               <div className="flex flex-col items-center mb-6 relative z-20">
                 <div className="fixed inset-0 z-10" onClick={() => setIsEditingTime(false)} />
                 <div className="bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-slate-100 flex flex-col items-center gap-4 relative z-20">
-                  <TimeWheelPicker 
+                  <TimeInputPicker 
                     value={inputMinutes} 
                     onChange={handleWheelChange} 
                     onClose={() => setIsEditingTime(false)} 
