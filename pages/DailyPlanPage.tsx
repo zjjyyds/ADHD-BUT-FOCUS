@@ -5,6 +5,45 @@ import MustDoTimeline from '../components/MustDoTimeline';
 import { ScheduleItem, SchedulePreset } from '../types';
 import { X, Plus, Trash2, Bookmark, Save } from 'lucide-react';
 
+
+const TimeSelect = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+  const parts = (value || '00:00').split(':');
+  const h = parts[0] || '00';
+  const m = parts[1] || '00';
+  
+  const handleHourChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(`${e.target.value}:${m}`);
+  };
+
+  const handleMinChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onChange(`${h}:${e.target.value}`);
+  };
+
+  return (
+    <div className="flex items-center gap-0.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 transition-colors">
+      <select 
+        value={h} 
+        onChange={handleHourChange} 
+        className="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer appearance-none text-center text-center"
+      >
+        {Array.from({length: 24}, (_, i) => i.toString().padStart(2, '0')).map(hour => (
+          <option key={hour} value={hour}>{hour}</option>
+        ))}
+      </select>
+      <span className="text-slate-400 font-bold -mx-0.5">:</span>
+      <select 
+        value={m} 
+        onChange={handleMinChange} 
+        className="bg-transparent text-sm font-bold text-slate-700 outline-none cursor-pointer appearance-none text-center"
+      >
+        {Array.from({length: 60}, (_, i) => i.toString().padStart(2, '0')).map(min => (
+          <option key={min} value={min}>{min}</option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
 export default function DailyPlanPage() {
   const { 
     dailyData, setDailyData,
@@ -277,19 +316,9 @@ export default function DailyPlanPage() {
             {draftSchedule.map((item, index) => (
               <div key={item.id} className="flex gap-3 items-center group bg-white p-2 rounded-xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md">
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <input 
-                    type="time" 
-                    value={item.startTime} 
-                    onChange={(e) => updateDraftRow(item.id, 'startTime', e.target.value)}
-                    className="w-[90px] px-2 py-2 bg-transparent text-sm font-bold text-slate-700 outline-none focus:bg-slate-50 rounded-lg"
-                  />
+                  <TimeSelect value={item.startTime} onChange={(val) => updateDraftRow(item.id, 'startTime', val)} />
                   <span className="text-slate-300">-</span>
-                  <input 
-                    type="time" 
-                    value={item.endTime} 
-                    onChange={(e) => updateDraftRow(item.id, 'endTime', e.target.value)}
-                    className="w-[90px] px-2 py-2 bg-transparent text-sm font-bold text-slate-700 outline-none focus:bg-slate-50 rounded-lg"
-                  />
+                  <TimeSelect value={item.endTime} onChange={(val) => updateDraftRow(item.id, 'endTime', val)} />
                 </div>
                 
                 <input 
